@@ -114,8 +114,6 @@ public:
     MeshData* GetMeshData() const;
     void CommitMeshData();
 
-    void Draw(const glm::mat4& Model);
-    
 private:
     std::vector<Material*> Materials;
     MeshData* Data;

@@ -12,20 +12,43 @@
 #include "RenderManager.h"
 #include "Shader.h"
 #include "StaticMeshComponent.h"
-#include "RenderTexture.h"
+#include "RenderTexture2D.h"
 
 void Application::Init()
 {
     Actor::Init();
 
-    RenderTexture::CreateRenderTextureParams RTParams;
-    RTParams.W = 1200;
-    RTParams.H = 800;
-    RTParams.Format = Texture::TextureFormats::RGB8;
-    RTParams.Pixels = nullptr;
-    RTParams.AttachDepthBuffer = true;
-    RTParams.GenerateMips = false;
-    ScreenTexture = RenderTexture::Create(this, RTParams);
+    Shader* GBufferShader = CreateObject<Shader>(this);
+	GBufferShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferPassVS.shader");
+	GBufferShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GBufferPassFS.shader");
+    GBufferShader->Compile();
+
+    GBufferMaterial = CreateObject<Material>(this);
+    GBufferMaterial->SetShader(GBufferShader);
+
+	RenderTexture2D::CreateRenderTexture2DParams RTParams;
+	RTParams.W = 1200;
+	RTParams.H = 800;
+	RTParams.Format = Texture::TextureFormats::RGB8;
+	RTParams.Pixels = nullptr;
+	RTParams.AttachDepthBuffer = true;
+	RTParams.GenerateMips = false;
+	ScreenTexture = RenderTexture2D::Create(this, RTParams);
+
+	RenderTexture2D::CreateRenderTexture2DParams GBufferParams;
+	GBufferParams.W = 1200;
+	GBufferParams.H = 800;
+	GBufferParams.Format = Texture::TextureFormats::RGB8;
+	GBufferParams.Pixels = nullptr;
+	GBufferParams.AttachDepthBuffer = true;
+	GBufferParams.GenerateMips = false;
+	GBuffer = RenderTexture2D::Create(this, GBufferParams);
+
+	GBuffer->AddTexture(0, Texture::TextureFormats::RGBA8); // Ambient
+	GBuffer->AddTexture(1, Texture::TextureFormats::RGBA8); // Albedo Spec
+	GBuffer->AddTexture(2, Texture::TextureFormats::RGB32); // Position
+	GBuffer->AddTexture(3, Texture::TextureFormats::RGB32); // Normal
+    GBuffer->UpdateResource();
 
     StaticMesh::FCreateStaticMeshParams SMParams;
     SMParams.Positions = {
@@ -47,7 +70,6 @@ void Application::Init()
 
     FullScreenQuadMat = CreateObject<Material>(this);
     FullScreenQuadMat->SetShader(Engine::Get()->DrawFullScreenQuadShader);
-    QuadMesh->SetMaterial(0, FullScreenQuadMat);
     FullScreenQuadMat->SetTexture("gTex_Scene", ScreenTexture);
 
     RootActor = Engine::Get()->GetActiveWorld()->SpawnActor<Actor>();
@@ -81,26 +103,50 @@ void Application::Update(float DeltaTime)
         FullScreenQuadMat->SetFloat("gInvert_Power", 0.0f);
         FullScreenQuadMat->SetFloat("gGreyscale_Power", 0.0f);
     }
-    else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_2) == GLFW_PRESS)
-    {
-        FullScreenQuadMat->SetFloat("gInvert_Power", 1.0f);
-        FullScreenQuadMat->SetFloat("gGreyscale_Power", 0.0f);
-    }
-    else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_3) == GLFW_PRESS)
-    {
-        FullScreenQuadMat->SetFloat("gInvert_Power", 0.0f);
-        FullScreenQuadMat->SetFloat("gGreyscale_Power", 1.0f);
-    }
-    
-    ScreenTexture->Bind();
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_2) == GLFW_PRESS)
+	{
+		FullScreenQuadMat->SetFloat("gInvert_Power", 1.0f);
+		FullScreenQuadMat->SetFloat("gGreyscale_Power", 0.0f);
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_3) == GLFW_PRESS)
+	{
+		FullScreenQuadMat->SetFloat("gInvert_Power", 0.0f);
+		FullScreenQuadMat->SetFloat("gGreyscale_Power", 1.0f);
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_4) == GLFW_PRESS)
+	{
+		FullScreenQuadMat->SetTexture("gTex_Scene", ScreenTexture);
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_5) == GLFW_PRESS)
+	{
+        FullScreenQuadMat->SetTexture("gTex_Scene", GBuffer->GetTexture(0));
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_6) == GLFW_PRESS)
+	{
+        FullScreenQuadMat->SetTexture("gTex_Scene", GBuffer->GetTexture(1));
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_7) == GLFW_PRESS)
+	{
+        FullScreenQuadMat->SetTexture("gTex_Scene", GBuffer->GetTexture(2));
+	}
+	else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_8) == GLFW_PRESS)
+	{
+        FullScreenQuadMat->SetTexture("gTex_Scene", GBuffer->GetTexture(3));
+	}
+
+	ScreenTexture->BindFramebuffer();
     ScreenTexture->Clear(true);
+	glEnable(GL_DEPTH_TEST);
+	GetRenderManager()->RenderScene(FlyCam->GetCameraComponent());
+    
+    GBuffer->BindFramebuffer();
+    GBuffer->Clear(true);
     glEnable(GL_DEPTH_TEST);
-    GetRenderManager()->RenderScene(FlyCam->GetCameraComponent());
+    GetRenderManager()->RenderScene(GBufferMaterial, FlyCam->GetCameraComponent());
 
     glDisable(GL_DEPTH_TEST);
     GetRenderManager()->BindFramebuffer(nullptr);
-
-    QuadMesh->Draw(glm::identity<glm::mat4>());
+    GetRenderManager()->RenderMesh(FlyCam->GetCameraComponent(), glm::identity<glm::mat4>(), FullScreenQuadMat, QuadMesh);
 }
 
 void Application::Shutdown()

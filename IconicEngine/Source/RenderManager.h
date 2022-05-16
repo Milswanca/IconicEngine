@@ -10,6 +10,7 @@ class RenderTexture;
 class UniformBufferObject;
 class Texture;
 class Material;
+class StaticMesh;
 
 class RenderManager : public Object
 {
@@ -39,7 +40,10 @@ public:
     RenderTexture* GetFramebuffer() const;
     UniformBufferObject* GetUniformBuffer(unsigned int Index) const;
 
+    void RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
+
     void RenderScene(CameraComponent* Camera);
+    void RenderScene(Material* Mat, CameraComponent* Camera);
 
     void RegisterDrawable(IDrawable* Drawable);
     void DeregisterDrawable(IDrawable* Drawable);

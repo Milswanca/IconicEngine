@@ -16,7 +16,7 @@ public:
     void SetMesh(StaticMesh* NewMesh);
     StaticMesh* GetMesh() const;
 
-    virtual void Draw() override;
+    virtual void Draw(Material* Mat) override;
 
 private:
     StaticMesh* Mesh;

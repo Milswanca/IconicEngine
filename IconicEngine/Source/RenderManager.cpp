@@ -6,6 +6,7 @@
 #include "RenderTexture.h"
 #include "Texture.h"
 #include "UniformBufferObject.h"
+#include "StaticMesh.h"
 
 UniformBufferObject* RenderManager::CameraBuffer = nullptr;
 RenderManager::CameraBufferData RenderManager::CameraData;
@@ -108,17 +109,48 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
     return BoundBuffers[Index];
 }
 
+void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
+{
+	CameraData.gEyePosition = Camera->GetPosition();
+	CameraData.gProjectionView = Camera->GetProjectionView();
+	CameraBuffer->BufferData(&CameraData);
+	CameraBuffer->Bind(0);
+
+	if (Mesh)
+	{
+		glBindVertexArray(Mesh->GetMeshData()->VertexArrayObject);
+
+		for (unsigned int i = 0; i < Mesh->GetMeshData()->NumSections; ++i)
+		{
+			Material* DrawMat = Mat != nullptr ? Mat : Mesh->GetMaterial(i);
+			Mat->SetVec3("gLightPosition", glm::vec3(1000, 1700, 1000));
+			Mat->SetMat4("gModel", Model);
+			Mat->Use();
+			Mat->BindParameters();
+
+			glDrawElements(GL_TRIANGLES, Mesh->GetMeshData()->Sections[i].NumIndices, GL_UNSIGNED_INT, (GLvoid*)(sizeof(unsigned int) * Mesh->GetMeshData()->Sections[i].IndexOffset));
+		}
+
+		glBindVertexArray(0);
+	}
+}
+
 void RenderManager::RenderScene(CameraComponent* Camera)
 {
-    CameraData.gEyePosition = Camera->GetPosition();
-    CameraData.gProjectionView = Camera->GetProjectionView();
-    CameraBuffer->BufferData(&CameraData);
-    CameraBuffer->Bind(0);
-    
-    for(size_t i = 0; i < Drawables.size(); ++i)
-    {
-        Drawables[i]->Draw();
-    }
+    RenderScene(nullptr, Camera);
+}
+
+void RenderManager::RenderScene(Material* Mat, CameraComponent* Camera)
+{
+	CameraData.gEyePosition = Camera->GetPosition();
+	CameraData.gProjectionView = Camera->GetProjectionView();
+	CameraBuffer->BufferData(&CameraData);
+	CameraBuffer->Bind(0);
+
+	for (size_t i = 0; i < Drawables.size(); ++i)
+	{
+		Drawables[i]->Draw(Mat);
+	}
 }
 
 void RenderManager::RegisterDrawable(IDrawable* Drawable)

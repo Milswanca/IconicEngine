@@ -7,6 +7,8 @@
 class Material;
 class Shader;
 class RenderTexture;
+class RenderTexture2D;
+class StaticMeshActor;
 
 class Application : public Actor
 {    
@@ -17,9 +19,11 @@ public:
     virtual void Update(float DeltaTime) override;
     virtual void Shutdown() override;
 
+    Material* GBufferMaterial;
     Material* FullScreenQuadMat;
     RenderTexture* ScreenTexture;
     StaticMesh* QuadMesh;
+    RenderTexture2D* GBuffer;
 
     Shader* Program;
     Material* Mat;

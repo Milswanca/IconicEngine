@@ -102,13 +102,19 @@
     <ClCompile Include="Source\Core\World.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Source\lodepng\lodepng.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="Source\UniformBufferObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Source\RenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\IDrawable.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Texture2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderTexture2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -194,13 +200,19 @@
     <ClInclude Include="Source\Core\World.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Source\lodepng\lodepng.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Source\UniformBufferObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Source\RenderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\IDrawable.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Texture2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RenderTexture2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -211,5 +223,7 @@
     <None Include="Content\Shaders\FullScreenQuadVS.shader" />
     <None Include="Content\Shaders\TessControl.shader" />
     <None Include="Content\Shaders\TessEval.shader" />
+    <None Include="Content\Shaders\GBufferPassVS.shader" />
+    <None Include="Content\Shaders\GBufferPassFS.shader" />
   </ItemGroup>
 </Project>

@@ -44,47 +44,21 @@ public:
         unsigned int Stride;
     };
 
-    struct TextureData
-    {
-        unsigned int Width;
-        unsigned int Height;
-        unsigned int Depth;
-
-        TextureFormats TextureFormat;
-        unsigned char* PixelData;
-    };
-
-    struct CreateTextureParams
-    {
-        unsigned int W;
-        unsigned int H;
-        unsigned char* Pixels;
-        TextureFormats Format;
-        bool GenerateMips;
-    };
-
 public:
-    static Texture* Create(Object* NewOuter, const CreateTextureParams& Params);
-
     IMPLEMENT_CONSTRUCTOR(Texture, AssetResource);
 
-    virtual void Init() override;
-    virtual void Shutdown() override;
+    virtual void Bind(unsigned int Index);
 
-    void Initialize(unsigned int W, unsigned int H, TextureFormats Format);
-    void SetPixels(unsigned char* Pixels);
-    virtual void UpdateResource();
-    GLuint GetTextureID() const;
+    virtual void UpdateResource() = 0;
+    virtual GLuint GetTextureID() const = 0;
 
 protected:
     virtual void TextureBound(unsigned int Index);
     virtual void TextureUnbound(unsigned int Index);
     
-    bool GenerateMips;
-    GLuint TextureID;
-    TextureData* Data;
+    bool bGenerateMips = true;
+    static std::map<TextureFormats, TexFormatToGLType> TexFormatsToGLTypes;
 
 private:
-    static std::map<TextureFormats, TexFormatToGLType> TexFormatsToGLTypes;
     friend class RenderManager;
 };

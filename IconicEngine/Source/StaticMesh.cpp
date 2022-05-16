@@ -289,21 +289,3 @@ void StaticMesh::CommitMeshData()
 {
     Data->CommitData();
 }
-
-void StaticMesh::Draw(const glm::mat4& Model)
-{    
-    glBindVertexArray(Data->VertexArrayObject);
-
-    for(unsigned int i = 0; i < Data->NumSections; ++i)
-    {
-        Material* Mat = GetMaterial(i);
-        Mat->SetVec3("gLightPosition", glm::vec3(1000, 1700, 1000));
-        Mat->SetMat4("gModel", Model);
-        Mat->Use();
-        Mat->BindParameters();
-        
-        glDrawElements(GL_TRIANGLES, Data->Sections[i].NumIndices, GL_UNSIGNED_INT, (GLvoid*)(sizeof(unsigned int) * Data->Sections[i].IndexOffset));
-    }
-
-    glBindVertexArray(0);
-}

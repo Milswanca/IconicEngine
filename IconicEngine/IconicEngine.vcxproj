@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\RenderTexture2D.cpp" />
     <ClCompile Include="Source\IDrawable.cpp" />
     <ClCompile Include="Source\RenderManager.cpp" />
     <ClCompile Include="Source\Assets\AssetFactory.cpp" />
@@ -51,8 +52,10 @@
     <ClCompile Include="Source\Utils\MeshUtils.cpp" />
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
     <ClCompile Include="Source\UniformBufferObject.cpp" />
+    <ClCompile Include="Source\Texture2D.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\RenderTexture2D.h" />
     <ClInclude Include="Source\IDrawable.h" />
     <ClInclude Include="Source\RenderManager.h" />
     <ClInclude Include="Source\Assets\AssetFactory.h" />
@@ -83,11 +86,14 @@
     <ClInclude Include="Source\Utils\MeshUtils.h" />
     <ClInclude Include="Source\Utils\StringUtils.h" />
     <ClInclude Include="Source\UniformBufferObject.h" />
+    <ClInclude Include="Source\Texture2D.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Content\Shaders\FragmentShader.shader" />
     <None Include="Content\Shaders\FullScreenQuadFS.shader" />
     <None Include="Content\Shaders\FullScreenQuadVS.shader" />
+    <None Include="Content\Shaders\GBufferPassFS.shader" />
+    <None Include="Content\Shaders\GBufferPassVS.shader" />
     <None Include="Content\Shaders\TessControl.shader" />
     <None Include="Content\Shaders\TessEval.shader" />
     <None Include="Content\Shaders\VertexShader.shader" />

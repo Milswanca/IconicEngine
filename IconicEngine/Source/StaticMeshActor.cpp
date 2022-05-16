@@ -21,7 +21,7 @@ StaticMesh* StaticMeshActor::GetMesh() const
 
 void StaticMeshActor::Draw()
 {
-    GetStaticMeshComponent()->Draw();
+    GetStaticMeshComponent()->Draw(nullptr);
 }
 
 StaticMeshComponent* StaticMeshActor::GetStaticMeshComponent() const

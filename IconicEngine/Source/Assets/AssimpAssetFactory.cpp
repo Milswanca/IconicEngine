@@ -7,7 +7,7 @@
 
 #include "Material.h"
 #include "StaticMesh.h"
-#include "Texture.h"
+#include "Texture2D.h"
 #include "Core/Engine.h"
 #include <iostream>
 #include "SOIL/SOIL.h"
@@ -275,14 +275,14 @@ Texture* AssimpAssetFactory::ImportTexture(const std::string& Dir, FProcessScene
     if(Pixels == nullptr)
         return nullptr;
 
-    Texture::CreateTextureParams CreateTexureParams;
+    Texture2D::CreateTexture2DParams CreateTexureParams;
     CreateTexureParams.W = W;
     CreateTexureParams.H = H;
     CreateTexureParams.Format = Format;
     CreateTexureParams.Pixels = Pixels;
     CreateTexureParams.GenerateMips = true;
 
-    Texture* NewTex = Texture::Create(this, CreateTexureParams);
+    Texture2D* NewTex = Texture2D::Create(this, CreateTexureParams);
     Params.LoadedTextures[Dir] = NewTex;
     return NewTex;
 }

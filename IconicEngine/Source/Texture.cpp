@@ -1,6 +1,7 @@
 ﻿#include "Texture.h"
 #include <glad/glad.h>
 #include <Core/Engine.h>
+#include "RenderManager.h"
 
 std::map<Texture::TextureFormats, Texture::TexFormatToGLType> Texture::TexFormatsToGLTypes
 {
@@ -18,85 +19,19 @@ std::map<Texture::TextureFormats, Texture::TexFormatToGLType> Texture::TexFormat
     {Texture::TextureFormats::R32, Texture::TexFormatToGLType(GL_R32F, GL_RED, GL_FLOAT, sizeof(float) * 1)},   
 };
 
-Texture* Texture::Create(Object* NewOuter, const CreateTextureParams& Params)
+void Texture::Bind(unsigned int Index)
 {
-    Texture* Tex = Engine::Get()->CreateObject<Texture>(NewOuter);
-    Tex->Initialize(Params.W, Params.H, Params.Format);
-
-    if (Params.Pixels != nullptr)
-    {
-        Tex->SetPixels(Params.Pixels);
-    }
-
-    Tex->GenerateMips = Params.GenerateMips;
-    Tex->UpdateResource();
-    return Tex;
-}
-
-void Texture::Init()
-{
-    AssetResource::Init();
-
-    GenerateMips = false;
-    Data = new TextureData();
-    Data->PixelData = nullptr;
-
-    glGenTextures(1, &TextureID);
-}
-
-void Texture::Shutdown()
-{
-    AssetResource::Shutdown();
-
-    if(Data->PixelData != nullptr)
-    {
-        delete[] Data->PixelData;
-        Data->PixelData = nullptr;
-    }
-    
-    delete Data;
-
-    glDeleteTextures(1, &TextureID);
-}
-
-void Texture::Initialize(unsigned W, unsigned H, TextureFormats Format)
-{
-    Data->Width = W;
-    Data->Height = H;
-    Data->TextureFormat = Format;
-}
-
-void Texture::SetPixels(unsigned char* Pixels)
-{
-    if(Data->PixelData != nullptr)
-    {
-        delete[] Data->PixelData;
-        Data->PixelData = nullptr;
-    }
-    
-    unsigned int NumBytes = Data->Width * Data->Height * TexFormatsToGLTypes[Data->TextureFormat].Stride;
-    Data->PixelData = new unsigned char[NumBytes];
-    memcpy(Data->PixelData, Pixels, NumBytes);
+    GetRenderManager()->BindTexture(this, Index);
 }
 
 void Texture::UpdateResource()
 {
-    TexFormatToGLType GLData = TexFormatsToGLTypes[Data->TextureFormat];
-    
-    glBindTexture(GL_TEXTURE_2D, TextureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GLData.SourceFormat, Data->Width, Data->Height, 0, GLData.DesiredFormat, GLData.DataType, Data->PixelData);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-    if(GenerateMips)
-    {
-        glGenerateMipmap(GL_TEXTURE_2D);
-    }
 }
 
 GLuint Texture::GetTextureID() const
 {
-    return TextureID;
+    return -1;
 }
 
 void Texture::TextureBound(unsigned Index)

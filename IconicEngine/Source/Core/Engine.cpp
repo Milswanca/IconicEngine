@@ -54,7 +54,6 @@ int Engine::Init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwWindowHint(GLFW_SAMPLES, 4);
     
     _Window = glfwCreateWindow(1200, 800, "LearnOpenGL", NULL, NULL);
     if (_Window == NULL)
@@ -76,12 +75,15 @@ int Engine::Init()
     
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    //glfwSwapInterval(0);
+    glfwSwapInterval(1);
     
     GLint MaxPatchVertices = 0;
     glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
     printf("Max supported patch vertices %d\n", MaxPatchVertices);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+	glEnable(GL_MULTISAMPLE);
+	glfwWindowHint(GLFW_SAMPLES, 4);
 
     _World = CreateObject<World>(nullptr);
     _AssetManager = CreateObject<AssetManager>(nullptr);
