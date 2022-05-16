@@ -10,12 +10,12 @@ struct Transform;
 class Component : public Object
 {
 public:
-    Component(Object* NewOuter);
-    virtual ~Component();
+    IMPLEMENT_CONSTRUCTOR(Component, Object);
+
+    virtual void Init() override;
+    virtual void Shutdown() override;
     
-    virtual void Begin();
     virtual void Update(const float DeltaTime);
-    virtual void End();
 
     Actor* GetOwner() const;
 

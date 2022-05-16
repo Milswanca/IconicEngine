@@ -1,7 +1,9 @@
 ﻿#include "Scene.h"
 
-Scene::Scene(Object* NewOuter) : Object(NewOuter)
+void Scene::Init()
 {
+    Object::Init();
+
     SceneNodes = new SceneNode*[MAX_SCENE_NODES];
     Components = new Component*[MAX_SCENE_NODES];
     NodeIDs = new IndexArray<unsigned short>(MAX_SCENE_NODES);
@@ -10,8 +12,10 @@ Scene::Scene(Object* NewOuter) : Object(NewOuter)
     AddNode(INVALID_SCENE_NODE, -1);
 }
 
-Scene::~Scene()
+void Scene::Shutdown()
 {
+    Object::Shutdown();
+
     RemoveNode(0);
     delete[] SceneNodes;
     delete[] Components;

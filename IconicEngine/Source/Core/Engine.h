@@ -4,6 +4,7 @@
 #include "IndexArray.h"
 #include "LookUpTable.h"
 #include "Object.h"
+#include "UniformBufferObject.h"
 #include "World.h"
 
 
@@ -24,6 +25,7 @@ public:
 	
 	static Engine* Get();
 	static Shader* BaseShader;
+	static Shader* DrawFullScreenQuadShader;
 	
 	virtual int Init();
 	virtual void Run();
@@ -33,6 +35,7 @@ public:
 
 	GLFWwindow* GetWindow() const;
 	AssetManager* GetAssetManager() const;
+	RenderManager* GetRenderManager() const;
 	Application* GetApplication() const;
 	World* GetActiveWorld() const;
 	
@@ -64,6 +67,7 @@ private:
 	GLFWwindow* _Window;
 	Application* _Application;
 	AssetManager* _AssetManager;
+	RenderManager* _RenderManager;
 	World* _World;
 	clock_t LastClock;
 	

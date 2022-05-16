@@ -5,13 +5,15 @@
 #include "Core/Actor.h"
 #include "Core/Engine.h"
 
-SceneComponent::SceneComponent(Object* NewOuter) : Component(NewOuter)
+void SceneComponent::Init()
 {
+    Component::Init();
     Components = new Component*[MAX_SCENE_NODES];
 }
 
-SceneComponent::~SceneComponent()
+void SceneComponent::Shutdown()
 {
+    Component::Shutdown();
     delete[] Components;
 }
 

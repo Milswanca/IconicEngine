@@ -9,13 +9,14 @@ class StaticMeshComponent;
 class StaticMeshActor : public Actor
 {
 public:
-    StaticMeshActor(Object* NewOuter);
-    ~StaticMeshActor();
+    IMPLEMENT_CONSTRUCTOR(StaticMeshActor, Actor);
+
+    virtual void Init() override;
     
     void SetMesh(StaticMesh* NewMesh);
     StaticMesh* GetMesh() const;
 
-    void Draw(const glm::vec3& ViewPos, const glm::mat4& View, const glm::mat4& Projection);
+    void Draw();
     
     StaticMeshComponent* GetStaticMeshComponent() const;
     

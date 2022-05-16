@@ -1,26 +1,31 @@
 ﻿#include "StaticMeshComponent.h"
 
 #include "Material.h"
+#include "RenderManager.h"
 #include "Shader.h"
 
-StaticMeshComponent::StaticMeshComponent(Object* NewOuter) : Component(NewOuter)
+void StaticMeshComponent::Init()
 {
-    
+    Component::Init();
+
+    GetRenderManager()->RegisterDrawable(this);
 }
 
-StaticMeshComponent::~StaticMeshComponent()
+void StaticMeshComponent::Shutdown()
 {
-    
+    Component::Shutdown();
+
+    GetRenderManager()->DeregisterDrawable(this);
 }
 
-void StaticMeshComponent::Draw(const glm::vec3& ViewPos, const glm::mat4& View, const glm::mat4& Projection)
+void StaticMeshComponent::Draw()
 {
     glm::mat4 LocalToWorld;
     GetLocalToWorld(LocalToWorld);
     
     if(Mesh)
     {
-        Mesh->Draw(ViewPos, View, Projection, LocalToWorld);
+        Mesh->Draw(LocalToWorld);
     }
 }
 

@@ -1,6 +1,6 @@
 #version 410 core
 layout (location = 0) in vec3 Position_VS_in;
-layout (location = 1) in vec3 UV_VS_in;
+layout (location = 1) in vec2 UV_VS_in;
 layout (location = 2) in vec3 Normal_VS_in;
 layout (location = 3) in vec3 Tangent_VS_in;
 layout (location = 4) in vec3 Bitangent_VS_in;
@@ -8,7 +8,7 @@ layout (location = 5) in vec4 Color_VS_in;
 
 out VS_OUT
 {
-    vec3 UV;
+    vec2 UV;
     vec4 Color;
     vec3 Position;
     vec3 Normal;
@@ -19,11 +19,14 @@ out VS_OUT
     vec3 LightPosition_TS;
 } vs_out;
 
-uniform vec3 gLightPosition;
-uniform vec3 gEyePosition;
+layout (std140) uniform Camera
+{
+    mat4 gViewProjection;
+    vec3 gEyePosition;
+};
 
+uniform vec3 gLightPosition;
 uniform mat4 gModel;
-uniform mat4 gViewProjection;
 
 void main()
 {

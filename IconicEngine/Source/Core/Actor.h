@@ -9,12 +9,12 @@ static const unsigned short MAX_COMPONENTS = 65534;
 class Actor : public Object
 {
 public:
-    Actor(Object* Outer);
-    virtual ~Actor();
+    IMPLEMENT_CONSTRUCTOR(Actor, Object);
 
-    virtual void Spawned();
+    virtual void Init() override;
+    virtual void Shutdown() override;
+
     virtual void Update(const float DeltaTime);
-    virtual void RemovedFromWorld();
 
     void SetLocalPosition(const glm::vec3& Position);
     void SetLocalRotation(const glm::quat& Rotation);

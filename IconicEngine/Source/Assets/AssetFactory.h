@@ -7,8 +7,7 @@
 class AssetFactory : public Object
 {
 public:
-    AssetFactory(Object* NewOuter);
-    virtual ~AssetFactory();
+    IMPLEMENT_CONSTRUCTOR(AssetFactory, Object);
 
 protected:
     virtual void ImportPackage(PACKAGE_HANDLE Package);

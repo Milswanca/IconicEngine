@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\IDrawable.cpp" />
+    <ClCompile Include="Source\RenderManager.cpp" />
     <ClCompile Include="Source\Assets\AssetFactory.cpp" />
     <ClCompile Include="Source\Assets\AssetManager.cpp" />
     <ClCompile Include="Source\Assets\AssetTypes.cpp" />
@@ -34,7 +36,6 @@
     <ClCompile Include="Source\glad.c" />
     <ClCompile Include="Source\IconicEngine.cpp" />
     <ClCompile Include="Source\IndexArray.cpp" />
-    <ClCompile Include="Source\lodepng\lodepng.cpp" />
     <ClCompile Include="Source\LookUpTable.cpp" />
     <ClCompile Include="Source\Material.cpp" />
     <ClCompile Include="Source\RenderTexture.cpp" />
@@ -49,8 +50,11 @@
     <ClCompile Include="Source\Utils\FileUtils.cpp" />
     <ClCompile Include="Source\Utils\MeshUtils.cpp" />
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
+    <ClCompile Include="Source\UniformBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\IDrawable.h" />
+    <ClInclude Include="Source\RenderManager.h" />
     <ClInclude Include="Source\Assets\AssetFactory.h" />
     <ClInclude Include="Source\Assets\AssetManager.h" />
     <ClInclude Include="Source\Assets\AssetTypes.h" />
@@ -64,7 +68,6 @@
     <ClInclude Include="Source\Core\World.h" />
     <ClInclude Include="Source\FlyCamera.h" />
     <ClInclude Include="Source\IndexArray.h" />
-    <ClInclude Include="Source\lodepng\lodepng.h" />
     <ClInclude Include="Source\LookUpTable.h" />
     <ClInclude Include="Source\Material.h" />
     <ClInclude Include="Source\RenderTexture.h" />
@@ -79,6 +82,15 @@
     <ClInclude Include="Source\Utils\FileUtils.h" />
     <ClInclude Include="Source\Utils\MeshUtils.h" />
     <ClInclude Include="Source\Utils\StringUtils.h" />
+    <ClInclude Include="Source\UniformBufferObject.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Shaders\FragmentShader.shader" />
+    <None Include="Content\Shaders\FullScreenQuadFS.shader" />
+    <None Include="Content\Shaders\FullScreenQuadVS.shader" />
+    <None Include="Content\Shaders\TessControl.shader" />
+    <None Include="Content\Shaders\TessEval.shader" />
+    <None Include="Content\Shaders\VertexShader.shader" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>

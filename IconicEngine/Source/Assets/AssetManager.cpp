@@ -4,14 +4,6 @@
 #include "Core/Engine.h"
 #include "Utils/FileUtils.h"
 
-AssetResource::AssetResource(Object* NewOuter) : Object(NewOuter)
-{
-}
-
-AssetResource::~AssetResource()
-{
-}
-
 Component* AssetResource::SpawnComponentForAsset()
 {
     return nullptr;

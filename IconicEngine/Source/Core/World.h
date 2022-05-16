@@ -8,8 +8,10 @@ static const unsigned short MAX_ACTORS = 65534;
 class World : public Object
 {
 public:
-    World(Object* NewOuter);
-    ~World();
+    IMPLEMENT_CONSTRUCTOR(World, Object);
+    
+    virtual void Init() override;
+    virtual void Shutdown() override;
     
     virtual void Update(const float DeltaTime);
 
@@ -18,7 +20,6 @@ public:
     {
         T* Actor = Engine::Get()->CreateObject<T>(this);
         Actors->Add(Actor);
-        Actor->Spawned();
         
         return Actor;
     }

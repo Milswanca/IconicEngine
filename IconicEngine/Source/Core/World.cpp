@@ -1,19 +1,23 @@
 ﻿#include "World.h"
 #include "Actor.h"
 
-World::World(Object* NewOuter) : Object(NewOuter)
-{
-    Actors = new LookUpTable<Actor, unsigned short>(MAX_ACTORS);
-}
-
-World::~World()
-{
-    delete Actors;
-}
-
 void UpdateActors(Actor* A, unsigned short I, float DT)
 {
     A->Update(DT);
+}
+
+void World::Init()
+{
+    Object::Init();
+
+    Actors = new LookUpTable<Actor, unsigned short>(MAX_ACTORS);
+}
+
+void World::Shutdown()
+{
+    Object::Shutdown();
+
+    delete Actors;
 }
 
 void World::Update(const float DeltaTime)
@@ -23,7 +27,6 @@ void World::Update(const float DeltaTime)
 
 void World::DestroyActor(Actor* Actor)
 {
-    Actor->RemovedFromWorld();
     Actors->Remove(Actor);
     Actor->Destroy();
 }

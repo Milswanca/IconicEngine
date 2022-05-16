@@ -6,14 +6,17 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/quaternion_trigonometric.hpp>
 
-FlyCamera::FlyCamera(Object* NewOuter) : Actor(NewOuter)
+void FlyCamera::Init()
 {
+    Actor::Init();
+
     CameraComp = AddComponent<CameraComponent>();
     CameraComp->AttachTo(GetRootComponent());
 }
 
-FlyCamera::~FlyCamera()
+void FlyCamera::Shutdown()
 {
+    Actor::Shutdown();
 }
 
 void FlyCamera::Update(const float DeltaTime)
@@ -92,4 +95,9 @@ glm::mat4 FlyCamera::GetView() const
 glm::mat4 FlyCamera::GetProjectionView() const
 {
     return CameraComp->GetProjectionView();
+}
+
+CameraComponent* FlyCamera::GetCameraComponent() const
+{
+    return CameraComp;
 }

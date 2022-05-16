@@ -5,30 +5,24 @@
 #include "Component.h"
 #include "World.h"
 
-Actor::Actor(Object* Outer) : Object(Outer)
+void Actor::Init()
 {
+    Object::Init();
+
     Components = new LookUpTable<Component, unsigned short>(MAX_COMPONENTS);
     RootComponent = AddComponent<Component>();
 }
 
-Actor::~Actor()
+void Actor::Shutdown()
 {
-    delete Components;
-}
+    Object::Shutdown();
 
-void Actor::Spawned()
-{
-    
+    delete Components;
 }
 
 void Actor::Update(const float DeltaTime)
 {
     GetRootComponent()->Update(DeltaTime);
-}
-
-void Actor::RemovedFromWorld()
-{
-    
 }
 
 void Actor::SetLocalPosition(const glm::vec3& Position)
@@ -99,7 +93,6 @@ void Actor::GetWorldToLocal(glm::mat4& OutWorldToLocal) const
 void Actor::RemoveComponent(Component* Component)
 {
     Components->Remove(Component);
-    Component->End();
     Component->Destroy();
 }
 

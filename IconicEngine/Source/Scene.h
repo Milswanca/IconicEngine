@@ -3,6 +3,7 @@
 
 #include "Component.h"
 #include "IndexArray.h"
+#include "SceneComponent.h"
 #include "Assets/AssetTypes.h"
 #include "Core/Object.h"
 
@@ -22,8 +23,10 @@ class Scene : public Object
     };
     
 public:
-    Scene(Object* NewOuter);
-    ~Scene();
+    IMPLEMENT_CONSTRUCTOR(Scene, Object);
+    
+    virtual void Init() override;
+    virtual void Shutdown() override;
     
     unsigned short AddNode(unsigned short ParentNode, ASSET_HANDLE Asset);
     void RemoveNode(unsigned short Node);

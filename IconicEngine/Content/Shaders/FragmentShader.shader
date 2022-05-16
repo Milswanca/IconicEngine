@@ -3,7 +3,7 @@ out vec4 Color_FS_out;
 
 in VS_OUT
 {
-    vec3 UV;
+    vec2 UV;
     vec4 Color;
     vec3 Position;
     vec3 Normal;
@@ -56,7 +56,7 @@ void main()
     vec3 reflectDir = reflect(-lightDir, normals);
     
     // Albedo
-    vec3 albedo = select(gDiffuseColor, texture(gTex_Diffuse, fs_in.UV.xy).xyz, gTex_Diffuse_Power);
+    vec3 albedo = select(gDiffuseColor, texture(gTex_Diffuse, fs_in.UV).xyz, gTex_Diffuse_Power);
     
     // Ambient Light
     vec3 ambient = gAmbientColor * 0.2f;

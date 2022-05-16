@@ -2,19 +2,18 @@
 #include "Core/Actor.h"
 #include "Transform.h"
 
-Component::Component(Object* NewOuter) : Object(NewOuter)
+void Component::Init()
 {
+    Object::Init();
+
     Trans = new Transform();
 }
 
-Component::~Component()
+void Component::Shutdown()
 {
-    delete Trans;
-}
+    Object::Shutdown();
 
-void Component::Begin()
-{
-    
+    delete Trans;
 }
 
 void Component::Update(const float DeltaTime)
@@ -23,11 +22,6 @@ void Component::Update(const float DeltaTime)
     {
         AttachChildren[i]->Update(DeltaTime);
     }
-}
-
-void Component::End()
-{
-    
 }
 
 Actor* Component::GetOwner() const

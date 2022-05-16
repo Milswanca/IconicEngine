@@ -3,30 +3,24 @@
 #include "Utils/FileUtils.h"
 #include <iostream>
 
-Shader::Shader(Object* NewOuter) : Object(NewOuter)
+void Shader::Init()
 {
+	Object::Init();
+	
 	ShaderIDs[static_cast<int>(ShaderTypes::Vertex)] = glCreateShader(GL_VERTEX_SHADER);
 	ShaderIDs[static_cast<int>(ShaderTypes::Fragment)] = glCreateShader(GL_FRAGMENT_SHADER);
 	ShaderIDs[static_cast<int>(ShaderTypes::TessControl)] = glCreateShader(GL_TESS_CONTROL_SHADER);
 	ShaderIDs[static_cast<int>(ShaderTypes::TessEval)] = glCreateShader(GL_TESS_EVALUATION_SHADER);
 }
 
-Shader::~Shader()
+void Shader::Shutdown()
 {
+	Object::Shutdown();
+	
 	glDeleteShader(ShaderIDs[static_cast<int>(ShaderTypes::Vertex)]);
 	glDeleteShader(ShaderIDs[static_cast<int>(ShaderTypes::Fragment)]);
 	glDeleteShader(ShaderIDs[static_cast<int>(ShaderTypes::TessControl)]);
 	glDeleteShader(ShaderIDs[static_cast<int>(ShaderTypes::TessEval)]);
-}
-
-void Shader::Init()
-{
-	Object::Init();
-}
-
-void Shader::Shutdown()
-{
-	Object::Shutdown();
 }
 
 void Shader::SetShaderSource(ShaderTypes Type, const std::string& Source)
@@ -58,25 +52,27 @@ void Shader::SetShaderSource(ShaderTypes Type, const std::string& Source)
 	}
 }
 
-unsigned int Shader::CreateProgram()
+void Shader::Compile()
 {
-	unsigned int Program = glCreateProgram();
+	ProgramID = glCreateProgram();
 
 	for(unsigned int i = 0; i < static_cast<unsigned int>(ShaderTypes::COUNT); ++i)
 	{
 		if(HasShaderType(static_cast<ShaderTypes>(i)))
 		{
-			glAttachShader(Program, ShaderIDs[i]);
+			glAttachShader(ProgramID, ShaderIDs[i]);
 		}
 	}
-	int err = glGetError();
 
-	glLinkProgram(Program);
-	return Program;
+	glLinkProgram(ProgramID);
 }
-
 
 bool Shader::HasShaderType(ShaderTypes Type) const
 {
 	return (HasShaderFlags & (1 << (static_cast<int>(Type)))) != 0;
+}
+
+unsigned Shader::GetProgramID() const
+{
+	return ProgramID;
 }

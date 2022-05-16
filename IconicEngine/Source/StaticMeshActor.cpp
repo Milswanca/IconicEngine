@@ -1,15 +1,12 @@
 ﻿#include "StaticMeshActor.h"
 #include "StaticMeshComponent.h"
 
-StaticMeshActor::StaticMeshActor(Object* NewOuter) : Actor(NewOuter)
+void StaticMeshActor::Init()
 {
+    Actor::Init();
+
     StaticMeshComp = AddComponent<StaticMeshComponent>();
     StaticMeshComp->AttachTo(GetRootComponent());
-}
-
-StaticMeshActor::~StaticMeshActor()
-{
-    
 }
 
 void StaticMeshActor::SetMesh(StaticMesh* NewMesh)
@@ -22,9 +19,9 @@ StaticMesh* StaticMeshActor::GetMesh() const
     return GetStaticMeshComponent()->GetMesh();
 }
 
-void StaticMeshActor::Draw(const glm::vec3& ViewPos, const glm::mat4& View, const glm::mat4& Projection)
+void StaticMeshActor::Draw()
 {
-    GetStaticMeshComponent()->Draw(ViewPos, View, Projection);
+    GetStaticMeshComponent()->Draw();
 }
 
 StaticMeshComponent* StaticMeshActor::GetStaticMeshComponent() const

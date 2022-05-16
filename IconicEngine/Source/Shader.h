@@ -18,19 +18,20 @@ enum class ShaderTypes
 class Shader : public Object
 {
 public:
-    Shader(Object* NewOuter);
-    virtual ~Shader();
+    IMPLEMENT_CONSTRUCTOR(Shader, Object);
     
     virtual void Init() override;
     virtual void Shutdown() override;
 
     void SetShaderSource(ShaderTypes Type, const std::string& Source);
-    unsigned int CreateProgram();
+    void Compile();
 
+    unsigned int GetProgramID() const;
     bool HasShaderType(ShaderTypes Type) const;
 
 private:
     int HasShaderFlags = 0;
+    unsigned int ProgramID;
 
     unsigned int ShaderIDs[static_cast<int>(ShaderTypes::COUNT)];
     std::string ShaderSources[static_cast<int>(ShaderTypes::COUNT)];

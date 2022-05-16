@@ -25,18 +25,21 @@ public:
     struct TexFormatToGLType
     {
         TexFormatToGLType() :
-            Format(GL_RGBA),
+            SourceFormat(GL_RGBA8),
+            DesiredFormat(GL_RGBA),
             DataType(GL_BYTE),
             Stride(32)
         {}
         
-        TexFormatToGLType(GLenum InFormat, GLenum InDataType, unsigned int InStride) :
-            Format(InFormat),
+        TexFormatToGLType(GLenum InSourceFormat, GLenum InDesiredFormat, GLenum InDataType, unsigned int InStride) :
+            SourceFormat(InSourceFormat),
+            DesiredFormat(InDesiredFormat),
             DataType(InDataType),
             Stride(InStride)
         {}
         
-        GLenum Format;
+        GLenum SourceFormat;
+        GLenum DesiredFormat;
         GLenum DataType;
         unsigned int Stride;
     };
@@ -51,19 +54,37 @@ public:
         unsigned char* PixelData;
     };
 
+    struct CreateTextureParams
+    {
+        unsigned int W;
+        unsigned int H;
+        unsigned char* Pixels;
+        TextureFormats Format;
+        bool GenerateMips;
+    };
+
 public:
-    Texture(Object* NewOuter);
-    ~Texture();
+    static Texture* Create(Object* NewOuter, const CreateTextureParams& Params);
+
+    IMPLEMENT_CONSTRUCTOR(Texture, AssetResource);
+
+    virtual void Init() override;
+    virtual void Shutdown() override;
 
     void Initialize(unsigned int W, unsigned int H, TextureFormats Format);
     void SetPixels(unsigned char* Pixels);
-    virtual void UpdateResource(bool bGenerateMips);
-    unsigned int GetTextureID() const;
+    virtual void UpdateResource();
+    GLuint GetTextureID() const;
 
-private:
-    unsigned int TextureID;
+protected:
+    virtual void TextureBound(unsigned int Index);
+    virtual void TextureUnbound(unsigned int Index);
+    
+    bool GenerateMips;
+    GLuint TextureID;
     TextureData* Data;
 
-public:
+private:
     static std::map<TextureFormats, TexFormatToGLType> TexFormatsToGLTypes;
+    friend class RenderManager;
 };

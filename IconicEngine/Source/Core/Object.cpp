@@ -40,3 +40,18 @@ unsigned short Object::GetUniqueID() const
 {
     return UniqueID;
 }
+
+Engine* Object::GetEngine() const
+{
+    return Engine::Get();
+}
+
+RenderManager* Object::GetRenderManager()
+{
+    return GetEngine()->GetRenderManager();
+}
+
+AssetManager* Object::GetAssetManager()
+{
+    return GetEngine()->GetAssetManager();
+}

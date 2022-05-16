@@ -6,8 +6,10 @@ class Scene;
 class SceneComponent : public Component
 {
 public:
-    SceneComponent(Object* NewOuter);
-    ~SceneComponent();
+    IMPLEMENT_CONSTRUCTOR(SceneComponent, Component);
+
+    virtual void Init() override;
+    virtual void Shutdown() override;
 
     void SetScene(Scene* NewScene);
 

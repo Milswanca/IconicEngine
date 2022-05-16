@@ -105,6 +105,12 @@
     <ClCompile Include="Source\lodepng\lodepng.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Source\UniformBufferObject.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\RenderManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\CameraComponent.h">
@@ -191,5 +197,19 @@
     <ClInclude Include="Source\lodepng\lodepng.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Source\UniformBufferObject.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\RenderManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Content\Shaders\VertexShader.shader" />
+    <None Include="Content\Shaders\FragmentShader.shader" />
+    <None Include="Content\Shaders\FullScreenQuadFS.shader" />
+    <None Include="Content\Shaders\FullScreenQuadVS.shader" />
+    <None Include="Content\Shaders\TessControl.shader" />
+    <None Include="Content\Shaders\TessEval.shader" />
   </ItemGroup>
 </Project>

@@ -5,9 +5,10 @@
 class FlyCamera : public Actor
 {
 public:
-    FlyCamera(Object* NewOuter);
-    virtual ~FlyCamera();
+    IMPLEMENT_CONSTRUCTOR(FlyCamera, Actor);
 
+    virtual void Init() override;
+    virtual void Shutdown() override;
     virtual void Update(const float DeltaTime) override;
 
     void SetFOV(float NewFOV);
@@ -18,6 +19,8 @@ public:
     glm::mat4 GetProjection() const;
     glm::mat4 GetView() const;
     glm::mat4 GetProjectionView() const;
+
+    CameraComponent* GetCameraComponent() const;
 
 private:
     CameraComponent* CameraComp;

@@ -15,8 +15,7 @@ class AssetFactory;
 class AssetResource : public Object
 {
 public:
-    AssetResource(Object* NewOuter);
-    virtual ~AssetResource();
+    IMPLEMENT_CONSTRUCTOR(AssetResource, Object);
 
     virtual Component* SpawnComponentForAsset();
     virtual void ApplyToComponent(Component* Component);

@@ -5,16 +5,18 @@
 class Material;
 class Shader;
 
-class StaticMeshComponent : public Component
+class StaticMeshComponent : public Component, public IDrawable
 {
 public:
-    StaticMeshComponent(Object* NewOuter);
-    ~StaticMeshComponent();
+    IMPLEMENT_CONSTRUCTOR(StaticMeshComponent, Component);
+
+    virtual void Init() override;
+    virtual void Shutdown() override;
     
     void SetMesh(StaticMesh* NewMesh);
     StaticMesh* GetMesh() const;
 
-    void Draw(const glm::vec3& ViewPos, const glm::mat4& View, const glm::mat4& Projection);
+    virtual void Draw() override;
 
 private:
     StaticMesh* Mesh;

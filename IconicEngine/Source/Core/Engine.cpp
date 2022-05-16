@@ -4,11 +4,13 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include "RenderManager.h"
 
 #include "Shader.h"
 
 Engine* Engine::Inst = nullptr;
 Shader* Engine::BaseShader = nullptr;
+Shader* Engine::DrawFullScreenQuadShader = nullptr;
 
 Engine::Engine()
 {
@@ -18,8 +20,6 @@ Engine::Engine()
 
     _Window = nullptr;
     _Application = nullptr;
-    _World = CreateObject<World>(nullptr);
-    _AssetManager = CreateObject<AssetManager>(nullptr);
 }
 
 Engine::~Engine()
@@ -38,6 +38,11 @@ Application* Engine::GetApplication() const
     return _Application;
 }
 
+RenderManager* Engine::GetRenderManager() const
+{
+    return _RenderManager;
+}
+
 World* Engine::GetActiveWorld() const
 {
     return _World;
@@ -49,7 +54,7 @@ int Engine::Init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    glfwWindowHint(GLFW_SAMPLES, 4);
+    //glfwWindowHint(GLFW_SAMPLES, 4);
     
     _Window = glfwCreateWindow(1200, 800, "LearnOpenGL", NULL, NULL);
     if (_Window == NULL)
@@ -71,21 +76,30 @@ int Engine::Init()
     
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
-    glfwSwapInterval(0);
+    //glfwSwapInterval(0);
     
     GLint MaxPatchVertices = 0;
     glGetIntegerv(GL_MAX_PATCH_VERTICES, &MaxPatchVertices);
     printf("Max supported patch vertices %d\n", MaxPatchVertices);
     glPatchParameteri(GL_PATCH_VERTICES, 3);
+
+    _World = CreateObject<World>(nullptr);
+    _AssetManager = CreateObject<AssetManager>(nullptr);
+    _RenderManager = CreateObject<RenderManager>(nullptr);
     
     BaseShader = CreateObject<Shader>(nullptr);
-    BaseShader->SetShaderSource(ShaderTypes::Vertex, "Content/VertexShader.shader");
-    BaseShader->SetShaderSource(ShaderTypes::Fragment, "Content/FragmentShader.shader");
-    //BaseShader->SetShaderSource(ShaderTypes::TessControl, "Content/TessControl.shader");
-    //BaseShader->SetShaderSource(ShaderTypes::TessEval, "Content/TessEval.shader");
+    BaseShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\VertexShader.shader");
+    BaseShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\FragmentShader.shader");
+    BaseShader->Compile();
+    //BaseShader->SetShaderSource(ShaderTypes::TessControl, "Content\Shaders\TessControl.shader");
+    //BaseShader->SetShaderSource(ShaderTypes::TessEval, "Content\Shaders\TessEval.shader");
+
+    DrawFullScreenQuadShader = CreateObject<Shader>(nullptr);
+    DrawFullScreenQuadShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\FullScreenQuadVS.shader");
+    DrawFullScreenQuadShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\FullScreenQuadFS.shader");
+    DrawFullScreenQuadShader->Compile();
 
     _Application = _World->SpawnActor<Application>();
-    _Application->Start();
     
     return 0;
 }
@@ -94,12 +108,13 @@ void Engine::Run()
 {
     while (!glfwWindowShouldClose(_Window))
     {
-        glfwSwapBuffers(_Window);
-        glfwPollEvents();
-
         glClearColor(0.0f, 0.3f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        
         Update();
+
+        glfwSwapBuffers(_Window);
+        glfwPollEvents();
     }
 }
 
@@ -111,7 +126,6 @@ void Engine::Update()
 
     std::string WindowTitle = std::to_string(1.0f / DeltaTime);
     glfwSetWindowTitle(GetWindow(), ("FPS" + WindowTitle).c_str());
-    _Application->Update(DeltaTime);
 
     if(_World)
     {
@@ -121,9 +135,6 @@ void Engine::Update()
 
 int Engine::Shutdown()
 {
-    _Application->Shutdown();
-    delete _Application;
-    
     glfwTerminate();
     return 0;
 }

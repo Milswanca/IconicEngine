@@ -9,7 +9,6 @@
 #include "StaticMesh.h"
 #include "Texture.h"
 #include "Core/Engine.h"
-#include "lodepng/lodepng.h"
 #include <iostream>
 #include "SOIL/SOIL.h"
 #include "Utils/FileUtils.h"
@@ -22,14 +21,17 @@ std::map<std::string, Texture::TextureFormats> AssimpAssetFactory::AssimpToTextu
     {"rgba8000", Texture::TextureFormats::R8},
 };
 
-AssimpAssetFactory::AssimpAssetFactory(Object* NewOuter) : AssetFactory(NewOuter)
+void AssimpAssetFactory::Init()
 {
+    AssetFactory::Init();
+
     AddSupportedFileExtension(".obj");
     AddSupportedFileExtension(".fbx");
 }
 
-AssimpAssetFactory::~AssimpAssetFactory()
+void AssimpAssetFactory::Shutdown()
 {
+    AssetFactory::Shutdown();
 }
 
 void AssimpAssetFactory::ImportPackage(PACKAGE_HANDLE Package)
@@ -45,7 +47,7 @@ void AssimpAssetFactory::ImportPackage(PACKAGE_HANDLE Package)
     std::string Source = PackageObject->GetSourcePath();
     
     Assimp::Importer Importer;
-    const aiScene* Scene = Importer.ReadFile(Source, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_FlipUVs);
+    const aiScene* Scene = Importer.ReadFile(Source, aiProcessPreset_TargetRealtime_MaxQuality | aiProcess_PreTransformVertices | aiProcess_FlipUVs);
 
     if (!Scene || Scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !Scene->mRootNode)
     {
@@ -54,41 +56,49 @@ void AssimpAssetFactory::ImportPackage(PACKAGE_HANDLE Package)
         return;
     }
 
-    ProcessScene(Scene, Package);
+    FProcessSceneParams Params;
+    Params.Scene = Scene;
+    Params.PackageHandle = Package;
+    ProcessScene(Params);
+
+    if(Params.CreateMeshParams.Positions.size() > 0)
+    {
+        StaticMesh* Mesh = StaticMesh::Create(this, Params.CreateMeshParams);
+        GetAssetManager()->AddAsset(Mesh, Package);
+    }
+    
     ImportComplete(Package, true);
 }
 
-void AssimpAssetFactory::ProcessScene(const aiScene* Scene, PACKAGE_HANDLE Package)
+void AssimpAssetFactory::ProcessScene(FProcessSceneParams& Params)
 {
-    std::vector<Material*> AllMaterials;
-    for (size_t i = 0; i < Scene->mNumMaterials; ++i)
+    for (size_t i = 0; i < Params.Scene->mNumMaterials; ++i)
     {
-        Material* Mat = ProcessMaterial(Scene->mMaterials[i], Scene, Package);
-        Engine::Get()->GetAssetManager()->AddAsset(Mat, Package);
-        AllMaterials.push_back(Mat);
+        Material* Mat = ProcessMaterial(Params.Scene->mMaterials[i], Params);
+        Engine::Get()->GetAssetManager()->AddAsset(Mat, Params.PackageHandle);
+        Params.AllMaterials.push_back(Mat);
     }
 
-    ProcessNode(Scene->mRootNode, AllMaterials, Scene, Package);
+    ProcessNode(Params.Scene->mRootNode, Params);
 }
 
-void AssimpAssetFactory::ProcessNode(aiNode* Node, const std::vector<Material*>& AllMaterials, const aiScene* Scene, PACKAGE_HANDLE Package)
+void AssimpAssetFactory::ProcessNode(aiNode* Node, FProcessSceneParams& Params)
 {
     for (unsigned int i = 0; i < Node->mNumMeshes; i++)
     {
-        aiMesh* AssimpMesh = Scene->mMeshes[Node->mMeshes[i]];
-        StaticMesh* Mesh = ProcessMesh(AssimpMesh, Node, AllMaterials, Scene, Package);
-        Engine::Get()->GetAssetManager()->AddAsset(Mesh, Package);
+        aiMesh* AssimpMesh = Params.Scene->mMeshes[Node->mMeshes[i]];
+        ProcessMesh(AssimpMesh, Node, Params);
     }
 
     for (unsigned int i = 0; i < Node->mNumChildren; i++)
     {
-        ProcessNode(Node->mChildren[i], AllMaterials, Scene, Package);
+        ProcessNode(Node->mChildren[i], Params);
     }
 }
 
-StaticMesh* AssimpAssetFactory::ProcessMesh(aiMesh* Mesh, const aiNode* Node, const std::vector<Material*>& AllMaterials, const aiScene* Scene, PACKAGE_HANDLE Package)
+void AssimpAssetFactory::ProcessMesh(aiMesh* Mesh, const aiNode* Node, FProcessSceneParams& Params)
 {
-    Material* Mat = AllMaterials[Mesh->mMaterialIndex];
+    Material* Mat = Params.AllMaterials[Mesh->mMaterialIndex];
 
     aiMatrix4x4 Transform = Node->mTransformation;
     const aiNode* CurrentNode = Node;
@@ -112,38 +122,50 @@ StaticMesh* AssimpAssetFactory::ProcessMesh(aiMesh* Mesh, const aiNode* Node, co
             Mesh->mNormals[i] = (aiMatrix3x3(Transform) * Mesh->mNormals[i]).Normalize();
     }
 
-    StaticMesh::FCreateStaticMeshParams Params;
-    Params.Positions = std::vector<glm::vec3>(Mesh->HasPositions() ? Mesh->mNumVertices : 0);
-    Params.UVs = std::vector<glm::vec3>(Mesh->HasTextureCoords(0) ? Mesh->mNumVertices : 0);
-    Params.Normals = std::vector<glm::vec3>(Mesh->HasNormals() ? Mesh->mNumVertices : 0);
-    Params.Tangents = std::vector<glm::vec3>(Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0);
-    Params.Bitangents = std::vector<glm::vec3>(Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0);
-    Params.Colors = std::vector<glm::vec4>(Mesh->HasVertexColors(0) ? Mesh->mNumVertices : 0);
+    StaticMesh::FCreateStaticMeshParams* MeshParams = &Params.CreateMeshParams;
+    const unsigned int PositionsOffset = MeshParams->Positions.size();
+    const unsigned int UVsOffset = MeshParams->UVs.size();
+    const unsigned int NormalsOffset = MeshParams->Normals.size();
+    const unsigned int TangentsOffset = MeshParams->Tangents.size();
+    const unsigned int BitangentsOffset = MeshParams->Bitangents.size();
+    const unsigned int ColorsOffset = MeshParams->Colors.size();
 
-    memcpy(Params.Positions.data(), Mesh->mVertices, sizeof(glm::vec3) * (Mesh->HasPositions() ? Mesh->mNumVertices : 0));
-    memcpy(Params.UVs.data(), Mesh->mTextureCoords[0], sizeof(glm::vec3) * (Mesh->HasTextureCoords(0) ? Mesh->mNumVertices : 0));
-    memcpy(Params.Normals.data(), Mesh->mNormals, sizeof(glm::vec3) * (Mesh->HasNormals() ? Mesh->mNumVertices : 0));
-    memcpy(Params.Tangents.data(), Mesh->mTangents, sizeof(glm::vec3) * (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
-    memcpy(Params.Bitangents.data(), Mesh->mBitangents, sizeof(glm::vec3) * (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
-    memcpy(Params.Colors.data(), Mesh->mColors, sizeof(glm::vec4) * (Mesh->HasVertexColors(0) ? Mesh->mNumVertices : 0));
+    MeshParams->Positions.resize(MeshParams->Positions.size() + (Mesh->HasPositions() ? Mesh->mNumVertices : 0));
+    MeshParams->UVs.resize(MeshParams->UVs.size() + (Mesh->HasTextureCoords(0) ? Mesh->mNumVertices : 0));
+    MeshParams->Normals.resize(MeshParams->Normals.size() + (Mesh->HasNormals() ? Mesh->mNumVertices : 0));
+    MeshParams->Tangents.resize(MeshParams->Tangents.size() + (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
+    MeshParams->Bitangents.resize(MeshParams->Bitangents.size() + (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
+    MeshParams->Colors.resize(MeshParams->Colors.size() + (Mesh->HasVertexColors(0) ? Mesh->mNumVertices : 0));
 
+    memcpy(MeshParams->Positions.data() + PositionsOffset, Mesh->mVertices, sizeof(glm::vec3) * (Mesh->HasPositions() ? Mesh->mNumVertices : 0));
+    memcpy(MeshParams->Normals.data() + NormalsOffset, Mesh->mNormals, sizeof(glm::vec3) * (Mesh->HasNormals() ? Mesh->mNumVertices : 0));
+    memcpy(MeshParams->Tangents.data() + TangentsOffset, Mesh->mTangents, sizeof(glm::vec3) * (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
+    memcpy(MeshParams->Bitangents.data() + BitangentsOffset, Mesh->mBitangents, sizeof(glm::vec3) * (Mesh->HasTangentsAndBitangents() ? Mesh->mNumVertices : 0));
+    memcpy(MeshParams->Colors.data() + ColorsOffset, Mesh->mColors[0], sizeof(glm::vec4) * (Mesh->HasVertexColors(0) ? Mesh->mNumVertices : 0));
+
+    if(Mesh->HasTextureCoords(0))
+    {
+        for(unsigned i = 0; i < Mesh->mNumVertices; ++i)
+        {
+            MeshParams->UVs[i + UVsOffset] = glm::vec2(Mesh->mTextureCoords[0][i].x, Mesh->mTextureCoords[0][i].y);
+        }
+    }
+    
     std::vector<unsigned int> Indices;
     for (unsigned int i = 0; i < Mesh->mNumFaces; i++)
     {
         aiFace face = Mesh->mFaces[i];
         for (unsigned int j = 0; j < face.mNumIndices; j++)
         {
-            Indices.push_back(face.mIndices[j]);
+            Indices.push_back(PositionsOffset + face.mIndices[j]);
         }
     }
-    
-    Params.Triangles.push_back(Indices);
-    Params.Materials.push_back(Mat);
 
-    return StaticMesh::Create(this, Params);
+    MeshParams->Triangles.push_back(Indices);
+    MeshParams->Materials.push_back(Mat);
 }
 
-Material* AssimpAssetFactory::ProcessMaterial(aiMaterial* aiMat, const aiScene* Scene, PACKAGE_HANDLE Package)
+Material* AssimpAssetFactory::ProcessMaterial(aiMaterial* aiMat, FProcessSceneParams& Params)
 {
     Material* Mat = CreateObject<Material>(this);
     Mat->SetShader(Engine::BaseShader);
@@ -170,55 +192,64 @@ Material* AssimpAssetFactory::ProcessMaterial(aiMaterial* aiMat, const aiScene* 
     aiString DiffusePath;
     aiMat->GetTexture(aiTextureType_DIFFUSE, 0, &DiffusePath);
 
+    Texture* Tex = nullptr;
     if (DiffusePath.length > 0)
     {
-        Texture* Tex = ImportTexture(DiffusePath.C_Str(), Scene, Package);
-        Mat->SetFloat("gTex_Diffuse_Power", Tex != nullptr ? 1.0f : 0.0f);
+        Tex = ImportTexture(DiffusePath.C_Str(), Params);
         Mat->SetTexture("gTex_Diffuse", Tex);
     }
+    Mat->SetFloat("gTex_Diffuse_Power", Tex != nullptr ? 1.0f : 0.0f);
 
     aiString SpecularPath;
     aiMat->GetTexture(aiTextureType_SPECULAR, 0, &SpecularPath);
-    
+
+    Tex = nullptr;
     if (SpecularPath.length > 0)
     {
-        Texture* Tex = ImportTexture(SpecularPath.C_Str(), Scene, Package);
-        Mat->SetFloat("gTex_SpecularMask_Power", Tex != nullptr ? 1.0f : 0.0f);
+        Tex = ImportTexture(SpecularPath.C_Str(), Params);
         Mat->SetTexture("gTex_SpecularMask", Tex);
     }
+    Mat->SetFloat("gTex_SpecularMask_Power", Tex != nullptr ? 1.0f : 0.0f);
 
     aiString NormalPath;
     aiMat->GetTexture(aiTextureType_NORMALS, 0, &NormalPath);
 
+    Tex = nullptr;
     if (NormalPath.length > 0)
     {
-        Texture* Tex = ImportTexture(NormalPath.C_Str(), Scene, Package);
-        Mat->SetFloat("gTex_Normals_Power", Tex != nullptr ? 1.0f : 0.0f);
+        Tex = ImportTexture(NormalPath.C_Str(), Params);
         Mat->SetTexture("gTex_Normals", Tex);
     }
+    Mat->SetFloat("gTex_Normals_Power", Tex != nullptr ? 1.0f : 0.0f);
 
     aiString BumpMapPath;
     aiMat->GetTexture(aiTextureType_HEIGHT, 0, &BumpMapPath);
 
+    Tex = nullptr;
     if (BumpMapPath.length > 0)
     {
-        Texture* Tex = ImportTexture(BumpMapPath.C_Str(), Scene, Package);
-        Mat->SetFloat("gTex_Height_Power", Tex != nullptr ? 1.0f : 0.0f);
+        Tex = ImportTexture(BumpMapPath.C_Str(), Params);
         Mat->SetTexture("gTex_Height", Tex);
     }
+    Mat->SetFloat("gTex_Height_Power", Tex != nullptr ? 1.0f : 0.0f);
 
     Mat->SetFloat("gParallaxHeightScale", 0.1f);
 
     return Mat;
 }
 
-Texture* AssimpAssetFactory::ImportTexture(const std::string& Dir, const aiScene* Scene, PACKAGE_HANDLE Package)
+Texture* AssimpAssetFactory::ImportTexture(const std::string& Dir, FProcessSceneParams& Params)
 {
+    if(Params.LoadedTextures.find(Dir) != Params.LoadedTextures.end())
+    {
+        return Params.LoadedTextures[Dir];
+    }
+    
     int W; int H; int NumChannels;
     unsigned char* Pixels = nullptr;
     Texture::TextureFormats Format;
 
-    if (const aiTexture* aiTex = Scene->GetEmbeddedTexture(Dir.c_str()))
+    if (const aiTexture* aiTex = Params.Scene->GetEmbeddedTexture(Dir.c_str()))
     {
         Pixels = reinterpret_cast<unsigned char*>(&aiTex->pcData[0]);
         Format = AssimpToTextureFormatEnum[aiTex->achFormatHint];
@@ -231,7 +262,7 @@ Texture* AssimpAssetFactory::ImportTexture(const std::string& Dir, const aiScene
     }
     else
     {
-        AssetPackage* PackageObj = Engine::Get()->GetAssetManager()->GetPackageObject(Package);
+        AssetPackage* PackageObj = Engine::Get()->GetAssetManager()->GetPackageObject(Params.PackageHandle);
         std::string SourceDir = FileUtils::GetDirectory(PackageObj->GetSourcePath());
 
         std::string FinalPath;
@@ -244,10 +275,14 @@ Texture* AssimpAssetFactory::ImportTexture(const std::string& Dir, const aiScene
     if(Pixels == nullptr)
         return nullptr;
 
-    Texture* Tex = CreateObject<Texture>(this);
-    Tex->Initialize(W, H, Format);
-    Tex->SetPixels(Pixels);
-    Tex->UpdateResource(true);
+    Texture::CreateTextureParams CreateTexureParams;
+    CreateTexureParams.W = W;
+    CreateTexureParams.H = H;
+    CreateTexureParams.Format = Format;
+    CreateTexureParams.Pixels = Pixels;
+    CreateTexureParams.GenerateMips = true;
 
-    return Tex;
+    Texture* NewTex = Texture::Create(this, CreateTexureParams);
+    Params.LoadedTextures[Dir] = NewTex;
+    return NewTex;
 }

@@ -10,6 +10,8 @@
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>
 
+#include "RenderManager.h"
+
 StaticMesh* StaticMesh::Create(Object* NewOuter, const FCreateStaticMeshParams& Params)
 {
     StaticMesh* NewMesh = Engine::Get()->CreateObject<StaticMesh>(NewOuter);
@@ -28,7 +30,7 @@ StaticMesh* StaticMesh::Create(Object* NewOuter, const FCreateStaticMeshParams& 
 
     for(size_t i = 0; i < Params.Materials.size(); ++i)
     {
-        NewMesh->SetMaterial(i, Params.Materials[i]);
+        NewMesh->SetMaterial((unsigned int)i, Params.Materials[i]);
     }
     
     NewMesh->CommitMeshData();
@@ -59,12 +61,7 @@ StaticMesh::MeshData::MeshData()
     NumColors = 0;
 
     glGenBuffers(1, &IndexBuffer);
-    glGenBuffers(1, &PositionBuffer);
-    glGenBuffers(1, &UVsBuffer);
-    glGenBuffers(1, &NormalsBuffer);
-    glGenBuffers(1, &TangentsBuffer);
-    glGenBuffers(1, &BitangentsBuffer);
-    glGenBuffers(1, &ColorsBuffer);
+    glGenBuffers(1, &VertexBuffer);
     glGenVertexArrays(1, &VertexArrayObject);
 }
 
@@ -77,12 +74,7 @@ StaticMesh::MeshData::~MeshData()
     delete[] Sections;
 
     glDeleteBuffers(1, &IndexBuffer);
-    glDeleteBuffers(1, &PositionBuffer);
-    glDeleteBuffers(1, &UVsBuffer);
-    glDeleteBuffers(1, &NormalsBuffer);
-    glDeleteBuffers(1, &TangentsBuffer);
-    glDeleteBuffers(1, &BitangentsBuffer);
-    glDeleteBuffers(1, &ColorsBuffer);
+    glDeleteBuffers(1, &VertexBuffer);
     glDeleteVertexArrays(1, &VertexArrayObject);
 }
 
@@ -94,11 +86,11 @@ void StaticMesh::MeshData::SetPositions(const glm::vec3* InPositions, unsigned i
     NumPositions = Size;
 }
 
-void StaticMesh::MeshData::SetUVs(const glm::vec3* InUVs, unsigned int Size)
+void StaticMesh::MeshData::SetUVs(const glm::vec2* InUVs, unsigned int Size)
 {
     delete[] UVs;
-    UVs = new glm::vec3[Size];
-    memcpy(UVs, InUVs, sizeof(glm::vec3) * Size);
+    UVs = new glm::vec2[Size];
+    memcpy(UVs, InUVs, sizeof(glm::vec2) * Size);
     NumUVs = Size;
 }
 
@@ -136,37 +128,52 @@ void StaticMesh::MeshData::SetColors(const glm::vec4* InColors, unsigned int Siz
 
 void StaticMesh::MeshData::CommitData()
 {
+    PositionsBufferSizeBytes = (sizeof(glm::vec3) * NumPositions);
+    UVsBufferSizeBytes = (sizeof(glm::vec2) * NumUVs);
+    NormalsBufferSizeBytes = (sizeof(glm::vec3) * NumNormals);
+    TangentsBufferSizeBytes = (sizeof(glm::vec3) * NumTangents);
+    BitangentsBufferSizeBytes = (sizeof(glm::vec3) * NumBitangents);
+    ColorsBufferSizeBytes = (sizeof(glm::vec4) * NumColors);
+
+    VertexBufferSizeBytes =
+        PositionsBufferSizeBytes + UVsBufferSizeBytes + NormalsBufferSizeBytes +
+                    TangentsBufferSizeBytes + BitangentsBufferSizeBytes + ColorsBufferSizeBytes;
+
+    PositionsOffsetBytes = 0;
+    UVsOffsetBytes = PositionsOffsetBytes + PositionsBufferSizeBytes;
+    NormalsOffsetBytes = UVsOffsetBytes + UVsBufferSizeBytes;
+    TangentsOffsetBytes = NormalsOffsetBytes + NormalsBufferSizeBytes;
+    BitangentsOffsetBytes = TangentsOffsetBytes + TangentsBufferSizeBytes;
+    ColorsOffsetBytes = BitangentsOffsetBytes + BitangentsBufferSizeBytes;
+
     glBindVertexArray(VertexArrayObject);
     
-    glBindBuffer(GL_ARRAY_BUFFER, PositionBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * NumPositions, Positions, GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, VertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, VertexBufferSizeBytes, NULL, GL_STATIC_DRAW);
+    
+    glBufferSubData(GL_ARRAY_BUFFER, PositionsOffsetBytes, PositionsBufferSizeBytes, Positions);
     glEnableVertexAttribArray(0);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (GLvoid*)PositionsOffsetBytes);
 
-    glBindBuffer(GL_ARRAY_BUFFER, UVsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * NumUVs, UVs, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, UVsOffsetBytes, UVsBufferSizeBytes, UVs);
     glEnableVertexAttribArray(1);
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (GLvoid*)UVsOffsetBytes);
 
-    glBindBuffer(GL_ARRAY_BUFFER, NormalsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * NumNormals, Normals, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, NormalsOffsetBytes, NormalsBufferSizeBytes, Normals);
     glEnableVertexAttribArray(2);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, 0, (void*)0);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_TRUE, 0, (GLvoid*)NormalsOffsetBytes);
 
-    glBindBuffer(GL_ARRAY_BUFFER, TangentsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * NumTangents, Tangents, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, TangentsOffsetBytes, TangentsBufferSizeBytes, Tangents);
     glEnableVertexAttribArray(3);
-    glVertexAttribPointer(3, 3, GL_FLOAT, GL_TRUE, 0, (void*)0);
+    glVertexAttribPointer(3, 3, GL_FLOAT, GL_TRUE, 0, (GLvoid*)TangentsOffsetBytes);
 
-    glBindBuffer(GL_ARRAY_BUFFER, BitangentsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec3) * NumBitangents, Bitangents, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, BitangentsOffsetBytes, BitangentsBufferSizeBytes, Bitangents);
     glEnableVertexAttribArray(4);
-    glVertexAttribPointer(4, 3, GL_FLOAT, GL_TRUE, 0, (void*)0);
+    glVertexAttribPointer(4, 3, GL_FLOAT, GL_TRUE, 0, (GLvoid*)BitangentsOffsetBytes);
 
-    glBindBuffer(GL_ARRAY_BUFFER, ColorsBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(glm::vec4) * NumColors, Colors, GL_STATIC_DRAW);
+    glBufferSubData(GL_ARRAY_BUFFER, ColorsOffsetBytes, ColorsBufferSizeBytes, Colors);
     glEnableVertexAttribArray(5);
-    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glVertexAttribPointer(5, 4, GL_FLOAT, GL_FALSE, 0, (GLvoid*)ColorsOffsetBytes);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, IndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, NumIndices * sizeof(unsigned int), Indices, GL_STATIC_DRAW);
@@ -232,13 +239,15 @@ bool StaticMesh::MeshData::GetMeshSection(unsigned SectionIndex, MeshSection& Se
     return true;
 }
 
-StaticMesh::StaticMesh(Object* NewOuter) : AssetResource(NewOuter)
+void StaticMesh::Init()
 {
+    AssetResource::Init();
     Data = new MeshData();
 }
 
-StaticMesh::~StaticMesh()
+void StaticMesh::Shutdown()
 {
+    AssetResource::Shutdown();
     delete Data;
 }
 
@@ -281,18 +290,17 @@ void StaticMesh::CommitMeshData()
     Data->CommitData();
 }
 
-void StaticMesh::Draw(const glm::vec3& ViewPos, const glm::mat4& View, const glm::mat4& Projection, const glm::mat4& Model)
+void StaticMesh::Draw(const glm::mat4& Model)
 {    
     glBindVertexArray(Data->VertexArrayObject);
 
     for(unsigned int i = 0; i < Data->NumSections; ++i)
     {
         Material* Mat = GetMaterial(i);
-        Mat->Use();
-        Mat->SetMat4("gViewProjection", Projection * View);
-        Mat->SetVec3("gEyePosition", ViewPos); 
         Mat->SetVec3("gLightPosition", glm::vec3(1000, 1700, 1000));
         Mat->SetMat4("gModel", Model);
+        Mat->Use();
+        Mat->BindParameters();
         
         glDrawElements(GL_TRIANGLES, Data->Sections[i].NumIndices, GL_UNSIGNED_INT, (GLvoid*)(sizeof(unsigned int) * Data->Sections[i].IndexOffset));
     }

@@ -9,20 +9,47 @@
 
 #include "Engine.h"
 #include "Material.h"
+#include "RenderManager.h"
 #include "Shader.h"
 #include "StaticMeshComponent.h"
+#include "RenderTexture.h"
 
-Application::Application(Object* NewOuter) : Actor(NewOuter)
+void Application::Init()
 {
-    RootActor = nullptr;    
-}
+    Actor::Init();
 
-Application::~Application()
-{
-}
+    RenderTexture::CreateRenderTextureParams RTParams;
+    RTParams.W = 1200;
+    RTParams.H = 800;
+    RTParams.Format = Texture::TextureFormats::RGB8;
+    RTParams.Pixels = nullptr;
+    RTParams.AttachDepthBuffer = true;
+    RTParams.GenerateMips = false;
+    ScreenTexture = RenderTexture::Create(this, RTParams);
 
-void Application::Start()
-{
+    StaticMesh::FCreateStaticMeshParams SMParams;
+    SMParams.Positions = {
+        glm::vec3(-1.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(-1.0f, -1.0f, 0.0f),
+        glm::vec3(1.0f, -1.0f, 0.0f)
+    };
+    SMParams.UVs = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+    };
+    SMParams.Triangles = { 
+        { 0, 1, 2, 2, 1, 3 }
+    };
+    QuadMesh = StaticMesh::Create(this, SMParams);
+
+    FullScreenQuadMat = CreateObject<Material>(this);
+    FullScreenQuadMat->SetShader(Engine::Get()->DrawFullScreenQuadShader);
+    QuadMesh->SetMaterial(0, FullScreenQuadMat);
+    FullScreenQuadMat->SetTexture("gTex_Scene", ScreenTexture);
+
     RootActor = Engine::Get()->GetActiveWorld()->SpawnActor<Actor>();
     
     AssetManager* AM = Engine::Get()->GetAssetManager();
@@ -47,18 +74,36 @@ void Application::Start()
 
 void Application::Update(float DeltaTime)
 {
-    if(glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_1) == GLFW_PRESS)
-        glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ); 
-    if(glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_2) == GLFW_PRESS)
-        glPolygonMode( GL_FRONT_AND_BACK, GL_FILL ); 
-    
-    for(int i = 0; i < Meshes.size(); ++i)
+    Actor::Update(DeltaTime);
+
+    if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_1) == GLFW_PRESS)
     {
-        Meshes[i]->Draw(FlyCam->GetPosition(), FlyCam->GetView(), FlyCam->GetProjection());
+        FullScreenQuadMat->SetFloat("gInvert_Power", 0.0f);
+        FullScreenQuadMat->SetFloat("gGreyscale_Power", 0.0f);
     }
+    else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_2) == GLFW_PRESS)
+    {
+        FullScreenQuadMat->SetFloat("gInvert_Power", 1.0f);
+        FullScreenQuadMat->SetFloat("gGreyscale_Power", 0.0f);
+    }
+    else if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_3) == GLFW_PRESS)
+    {
+        FullScreenQuadMat->SetFloat("gInvert_Power", 0.0f);
+        FullScreenQuadMat->SetFloat("gGreyscale_Power", 1.0f);
+    }
+    
+    ScreenTexture->Bind();
+    ScreenTexture->Clear(true);
+    glEnable(GL_DEPTH_TEST);
+    GetRenderManager()->RenderScene(FlyCam->GetCameraComponent());
+
+    glDisable(GL_DEPTH_TEST);
+    GetRenderManager()->BindFramebuffer(nullptr);
+
+    QuadMesh->Draw(glm::identity<glm::mat4>());
 }
 
 void Application::Shutdown()
 {
-    
+    Actor::Shutdown();
 }

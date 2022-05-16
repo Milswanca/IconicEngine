@@ -10,6 +10,7 @@
 
 #include "LookUpTable.h"
 #include "Shader.h"
+#include "UniformBufferObject.h"
 #include "Assets/AssetManager.h"
 #include "Core/Engine.h"
 #include "Core/Object.h"
@@ -27,6 +28,7 @@ class Material : public AssetResource
         VEC4,
         MAT4,
         TEXTURE,
+        BUFFER,
         COUNT
     };
     
@@ -34,12 +36,17 @@ class Material : public AssetResource
     {
     public:
         ShaderParamTypes Type;
-        void* Value;
+        unsigned char* Value;
     };
     
 public:
-    Material(Object* NewOuter);
-    ~Material();
+    IMPLEMENT_CONSTRUCTOR(Material, AssetResource);
+    
+    virtual void Init() override;
+    virtual void Shutdown() override;
+
+    void Use();
+    void BindParameters();
     
     bool DoesParamExist(const std::string& Name) const;
 
@@ -49,6 +56,7 @@ public:
     void SetVec4(const std::string& Name, const glm::vec4& Value);
     void SetMat4(const std::string& Name, const glm::mat4& Value);
     void SetTexture(const std::string& Name, Texture* Value);
+    void SetBuffer(const std::string& Name, UniformBufferObject* Value);
 
     bool GetFloat(const std::string& Name, float& OutValue) const;
     bool GetVec2(const std::string& Name, glm::vec2& OutValue) const;
@@ -56,25 +64,30 @@ public:
     bool GetVec4(const std::string& Name, glm::vec4& OutValue) const;
     bool GetMat4(const std::string& Name, glm::mat4& OutValue) const;
     bool GetTexture(const std::string& Name, Texture*& OutValue) const;
+    bool GetBuffer(const std::string& Name, UniformBufferObject*& OutValue) const;
 
     void SetName(const std::string& NewName);
     std::string GetName() const;
     void SetShader(Shader* NewShader);
     Shader* GetShader() const;
 
-    void Use();
-
     unsigned int GetProgramID() const;
     int GetUniformLocation(const std::string& Name) const;
 
-private:
-    bool AddParameter(const std::string& Name, ShaderParamTypes Type);
-    bool GetParameter(const std::string& Name, void*& OutValue) const;
-    int FindTextureParamIndex(const std::string& Name) const;
-    void BindTextures();
-
-    unsigned int ProgramID;
+protected:
+    virtual void MaterialBound();
+    virtual void MaterialUnbound();
     
+private:
+    void AddParameter(const std::string& Name, ShaderParamTypes Type);
+    bool GetParameter(const std::string& Name, void*& OutValue) const;
+    
+    int FindTextureParamIndex(const std::string& Name) const;
+    int FindBufferParamIndex(const std::string& Name) const;
+    
+    void BindTextures();
+    void BindBuffers();
+
     Shader* MatShader;
     std::string MatName;
     
@@ -82,6 +95,12 @@ private:
     std::string TextureParamNames[32];
     unsigned int NumTextureParams = 0;
 
+    UniformBufferObject* Buffers[32];
+    std::string BufferParamNames[32];
+    unsigned int NumBuffers = 0;
+
     std::unordered_map<std::string, ShaderParam> Values;
     unsigned int ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::COUNT)];
+
+    friend class RenderManager;
 };

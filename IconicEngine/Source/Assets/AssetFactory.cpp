@@ -3,16 +3,6 @@
 #include "Core/Engine.h"
 #include "Utils/StringUtils.h"
 
-AssetFactory::AssetFactory(Object* NewOuter) : Object(NewOuter)
-{
-    
-}
-
-AssetFactory::~AssetFactory()
-{
-    
-}
-
 void AssetFactory::ImportPackage(PACKAGE_HANDLE Package)
 {
     ImportComplete(Package, false);

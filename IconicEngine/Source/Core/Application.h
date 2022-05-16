@@ -1,6 +1,4 @@
 ﻿#pragma once
-#include <glm/ext/matrix_float4x4.hpp>
-
 #include "Actor.h"
 #include "FlyCamera.h"
 #include "StaticMesh.h"
@@ -8,16 +6,20 @@
 
 class Material;
 class Shader;
+class RenderTexture;
 
 class Application : public Actor
-{
+{    
 public:
-    Application(Object* NewOuter);
-    virtual ~Application();
+    IMPLEMENT_CONSTRUCTOR(Application, Actor);
     
-    virtual void Start();
-    virtual void Update(float DeltaTime);
-    virtual void Shutdown();
+    virtual void Init() override;
+    virtual void Update(float DeltaTime) override;
+    virtual void Shutdown() override;
+
+    Material* FullScreenQuadMat;
+    RenderTexture* ScreenTexture;
+    StaticMesh* QuadMesh;
 
     Shader* Program;
     Material* Mat;

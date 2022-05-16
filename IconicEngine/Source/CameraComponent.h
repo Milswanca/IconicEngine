@@ -5,9 +5,10 @@
 class CameraComponent : public Component
 {
 public:
-    CameraComponent(Object* NewOuter);
-    virtual ~CameraComponent();
-
+    IMPLEMENT_CONSTRUCTOR(CameraComponent, Component);
+    
+    virtual void Init() override;
+    virtual void Shutdown() override;
     virtual void Update(const float DeltaTime) override;
 
     void SetFOV(float NewFOV);

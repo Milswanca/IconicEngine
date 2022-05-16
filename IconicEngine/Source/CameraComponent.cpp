@@ -3,17 +3,20 @@
 #include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_transform.hpp>
 
-CameraComponent::CameraComponent(Object* NewOuter) : Component(NewOuter)
+void CameraComponent::Init()
 {
+    Component::Init();
+
     Near = 0.3f;
-    Far = 100000.0f;
+    Far = 10000.0f;
     FOV = 45.0f;
     Aspect = 600.0f / 400.0f;
     RefreshProjectionView();
 }
 
-CameraComponent::~CameraComponent()
+void CameraComponent::Shutdown()
 {
+    Component::Shutdown();
 }
 
 void CameraComponent::Update(const float DeltaTime)
