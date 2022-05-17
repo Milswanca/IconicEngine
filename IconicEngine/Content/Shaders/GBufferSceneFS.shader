@@ -59,5 +59,5 @@ void main()
     gPosition = fs_in.Position;
 
     // Normals
-    gNormal = select(fs_in.Normal, fs_in.TangentToWorldSpace * normalize(texture(gTex_Normals.xy, fs_in.UV.xy).xyz * 2.0 - 1.0), gTex_Normals_Power);
+    gNormal = select(fs_in.Normal, fs_in.TangentToWorldSpace * normalize(texture(gTex_Normals, fs_in.UV.xy).xyz * 2.0 - 1.0), gTex_Normals_Power);
 }
