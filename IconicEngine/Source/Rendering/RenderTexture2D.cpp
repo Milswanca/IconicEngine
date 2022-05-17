@@ -23,6 +23,7 @@ RenderTexture2D* RenderTexture2D::Create(Object* NewOuter, const CreateRenderTex
 void RenderTexture2D::Init()
 {
 	RenderTexture::Init();
+
 	Data = new RenderTexture2DData();
 }
 
@@ -80,15 +81,20 @@ void RenderTexture2D::UpdateResource()
 
 	BindFramebuffer();
 
+	GLenum BoundBuffers[32];
+	unsigned int NumBoundBuffers = 0;
 	for (unsigned int i = 0; i < 32; ++i)
 	{
 		if (!Textures[i])
 			continue;
 
 		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, Textures[i]->GetTextureID(), 0);
+		BoundBuffers[NumBoundBuffers] = GL_COLOR_ATTACHMENT0 + i;
+		NumBoundBuffers++;
 	}
 
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	glDrawBuffers(NumBoundBuffers, BoundBuffers);
 
 	GetRenderManager()->BindFramebuffer(LastBound);
 }

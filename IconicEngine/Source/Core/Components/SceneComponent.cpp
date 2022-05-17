@@ -1,6 +1,6 @@
 ﻿#include "SceneComponent.h"
 
-#include "Scene.h"
+#include "Rendering/Scene.h"
 #include "Assets/AssetManager.h"
 #include "Core/Actor.h"
 #include "Core/Engine.h"

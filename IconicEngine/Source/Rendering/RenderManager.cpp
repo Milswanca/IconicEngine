@@ -1,6 +1,8 @@
 #include "RenderManager.h"
 
-#include "CameraComponent.h"
+#include <glm/ext/matrix_transform.hpp>
+
+#include "Core/Components/CameraComponent.h"
 #include "IDrawable.h"
 #include "Material.h"
 #include "RenderTexture.h"
@@ -10,12 +12,30 @@
 
 UniformBufferObject* RenderManager::CameraBuffer = nullptr;
 RenderManager::CameraBufferData RenderManager::CameraData;
+StaticMesh* RenderManager::QuadMesh = nullptr;
 
-void RenderManager::Init()
+void RenderManager::PostInit()
 {
-    Object::Init();
-
+    StaticMesh::FCreateStaticMeshParams SMParams;
+    SMParams.Positions = {
+        glm::vec3(-1.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(-1.0f, -1.0f, 0.0f),
+        glm::vec3(1.0f, -1.0f, 0.0f)
+    };
+    SMParams.UVs = {
+        glm::vec3(0.0f, 1.0f, 0.0f),
+        glm::vec3(1.0f, 1.0f, 0.0f),
+        glm::vec3(0.0f, 0.0f, 0.0f),
+        glm::vec3(1.0f, 0.0f, 0.0f),
+    };
+    SMParams.Triangles = { 
+        { 0, 1, 2, 2, 1, 3 }
+    };
+    QuadMesh = StaticMesh::Create(this, SMParams);
+    
     CameraBuffer = CreateObject<UniformBufferObject>(this);
+    DeferredBuffer = CreateObject<GBufferDeferred>(this);
 }
 
 void RenderManager::Shutdown()
@@ -109,6 +129,32 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
     return BoundBuffers[Index];
 }
 
+void RenderManager::Render()
+{
+    for(unsigned int i = 0; i < GBuffer::MAX_GBUFFER_PASSES; ++i)
+    {
+        GBuffer::GBufferPass* Pass = DeferredBuffer->GetPassData(i);
+
+        if(Pass)
+        {
+            DeferredBuffer->PreRenderPass(i);
+
+            switch(Pass->RenderType)
+            {
+            case GBuffer::GBufferRenderPassType::RenderScene:
+                RenderScene(Pass->RenderShader, MainCamera);
+                break;
+
+            case GBuffer::GBufferRenderPassType::RenderQuad:
+                RenderMesh(MainCamera, glm::identity<glm::mat4>(), Pass->RenderMaterial, QuadMesh);
+                break;
+            }
+
+            DeferredBuffer->PostRenderPass(i);
+        }
+    }
+}
+
 void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
 {
 	CameraData.gEyePosition = Camera->GetPosition();
@@ -140,7 +186,7 @@ void RenderManager::RenderScene(CameraComponent* Camera)
     RenderScene(nullptr, Camera);
 }
 
-void RenderManager::RenderScene(Material* Mat, CameraComponent* Camera)
+void RenderManager::RenderScene(Shader* Shad, CameraComponent* Camera)
 {
 	CameraData.gEyePosition = Camera->GetPosition();
 	CameraData.gProjectionView = Camera->GetProjectionView();
@@ -149,7 +195,7 @@ void RenderManager::RenderScene(Material* Mat, CameraComponent* Camera)
 
 	for (size_t i = 0; i < Drawables.size(); ++i)
 	{
-		Drawables[i]->Draw(Mat);
+		Drawables[i]->Draw(Shad);
 	}
 }
 
@@ -161,4 +207,9 @@ void RenderManager::RegisterDrawable(IDrawable* Drawable)
 void RenderManager::DeregisterDrawable(IDrawable* Drawable)
 {
     std::remove(Drawables.begin(), Drawables.end(), Drawable);
+}
+
+void RenderManager::SetMainCamera(CameraComponent* NewMainCamera)
+{
+    MainCamera = NewMainCamera;
 }

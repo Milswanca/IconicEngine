@@ -1,7 +1,7 @@
 ﻿#pragma once
-#include "Component.h"
+#include "Core/Components/Component.h"
 #include "Engine.h"
-#include "LookUpTable.h"
+#include "Utils/LookUpTable.h"
 #include "Object.h"
 
 static const unsigned short MAX_COMPONENTS = 65534;

@@ -1,11 +1,11 @@
 ﻿#pragma once
 #include <vector>
 
-#include "Component.h"
-#include "IndexArray.h"
-#include "SceneComponent.h"
+#include "Utils/IndexArray.h"
 #include "Assets/AssetTypes.h"
 #include "Core/Object.h"
+
+class Component;
 
 static const unsigned short MAX_SCENE_NODES = 65534;
 static const unsigned short INVALID_SCENE_NODE = 65535;

@@ -1,6 +1,6 @@
 ﻿#include "Component.h"
 #include "Core/Actor.h"
-#include "Transform.h"
+#include "Core/Transform.h"
 
 void Component::Init()
 {

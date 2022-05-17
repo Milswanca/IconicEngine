@@ -5,8 +5,8 @@
 #include <assimp/scene.h>
 
 #include "AssetFactory.h"
-#include "StaticMesh.h"
-#include "Texture.h"
+#include "Rendering/StaticMesh.h"
+#include "Rendering/Texture.h"
 
 class Texture;
 class Material;

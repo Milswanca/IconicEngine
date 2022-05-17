@@ -8,7 +8,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 
-#include "LookUpTable.h"
+#include "Utils/LookUpTable.h"
 #include "Shader.h"
 #include "UniformBufferObject.h"
 #include "Assets/AssetManager.h"

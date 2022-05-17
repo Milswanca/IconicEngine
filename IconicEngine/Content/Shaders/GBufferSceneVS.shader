@@ -1,6 +1,6 @@
 #version 410 core
 layout(location = 0) in vec3 Position_VS_in;
-layout(location = 1) in vec2 UV_VS_in;
+layout(location = 1) in vec3 UV_VS_in;
 layout(location = 2) in vec3 Normal_VS_in;
 layout(location = 3) in vec3 Tangent_VS_in;
 layout(location = 4) in vec3 Bitangent_VS_in;
@@ -8,7 +8,7 @@ layout(location = 5) in vec4 Color_VS_in;
 
 out VS_OUT
 {
-    vec2 UV;
+    vec3 UV;
     vec4 Color;
     vec3 Position;
     vec3 Normal;

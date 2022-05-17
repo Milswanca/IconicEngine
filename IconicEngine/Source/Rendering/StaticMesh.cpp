@@ -5,7 +5,7 @@
 #include <glad/glad.h>
 
 #include "Material.h"
-#include "StaticMeshComponent.h"
+#include "Core/Components/StaticMeshComponent.h"
 #include "Core/Engine.h"
 #include <glm/ext/matrix_transform.hpp>
 #include <glm/ext/matrix_clip_space.hpp>

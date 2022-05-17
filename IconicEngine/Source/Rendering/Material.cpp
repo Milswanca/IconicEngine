@@ -3,7 +3,7 @@
 #include <glad/glad.h>
 
 #include "Shader.h"
-#include <Texture.h>
+#include <Rendering/Texture.h>
 #include <iostream>
 
 #include "RenderManager.h"
@@ -120,8 +120,8 @@ void Material::SetTexture(const std::string& Name, Texture* Value)
     int Index = FindTextureParamIndex(Name);
     if (Index != -1)
     {
-        Textures[Index] = Textures[NumTextureParams];
-        TextureParamNames[Index] = TextureParamNames[NumTextureParams];
+        Textures[Index] = Textures[NumTextureParams - 1];
+        TextureParamNames[Index] = TextureParamNames[NumTextureParams - 1];
         NumTextureParams--;
     }
 

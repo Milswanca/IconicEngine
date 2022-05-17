@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "LookUpTable.h"
+#include "Utils/LookUpTable.h"
 #include "Object.h"
 
 class Actor;

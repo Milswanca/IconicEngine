@@ -4,9 +4,9 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
-#include "RenderManager.h"
+#include "Rendering/RenderManager.h"
 
-#include "Shader.h"
+#include "Rendering/Shader.h"
 
 Engine* Engine::Inst = nullptr;
 Shader* Engine::BaseShader = nullptr;
@@ -88,6 +88,7 @@ int Engine::Init()
     _World = CreateObject<World>(nullptr);
     _AssetManager = CreateObject<AssetManager>(nullptr);
     _RenderManager = CreateObject<RenderManager>(nullptr);
+    _RenderManager->PostInit();
     
     BaseShader = CreateObject<Shader>(nullptr);
     BaseShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\VertexShader.shader");
@@ -95,11 +96,6 @@ int Engine::Init()
     BaseShader->Compile();
     //BaseShader->SetShaderSource(ShaderTypes::TessControl, "Content\Shaders\TessControl.shader");
     //BaseShader->SetShaderSource(ShaderTypes::TessEval, "Content\Shaders\TessEval.shader");
-
-    DrawFullScreenQuadShader = CreateObject<Shader>(nullptr);
-    DrawFullScreenQuadShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\FullScreenQuadVS.shader");
-    DrawFullScreenQuadShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\FullScreenQuadFS.shader");
-    DrawFullScreenQuadShader->Compile();
 
     _Application = _World->SpawnActor<Application>();
     
@@ -133,6 +129,8 @@ void Engine::Update()
     {
         _World->Update(DeltaTime);
     }
+
+    _RenderManager->Render();
 }
 
 int Engine::Shutdown()

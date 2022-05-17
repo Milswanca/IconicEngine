@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "Component.h"
-#include "StaticMesh.h"
+#include "Rendering/StaticMesh.h"
 
 class Material;
 class Shader;
@@ -16,7 +16,7 @@ public:
     void SetMesh(StaticMesh* NewMesh);
     StaticMesh* GetMesh() const;
 
-    virtual void Draw(Material* Mat) override;
+    virtual void Draw(Shader* Shad) override;
 
 private:
     StaticMesh* Mesh;

@@ -1,10 +1,10 @@
 #pragma once
 #include <ctime>
 
-#include "IndexArray.h"
-#include "LookUpTable.h"
+#include "Utils/IndexArray.h"
+#include "Utils/LookUpTable.h"
 #include "Object.h"
-#include "UniformBufferObject.h"
+#include "Rendering/UniformBufferObject.h"
 #include "World.h"
 
 

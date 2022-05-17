@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "CameraComponent.h"
+#include "Core/Components/CameraComponent.h"
 #include "Core/Actor.h"
 
 class FlyCamera : public Actor

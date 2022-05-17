@@ -5,9 +5,9 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include "Material.h"
-#include "StaticMesh.h"
-#include "Texture2D.h"
+#include "Rendering/Material.h"
+#include "Rendering/StaticMesh.h"
+#include "Rendering/Texture2D.h"
 #include "Core/Engine.h"
 #include <iostream>
 #include "SOIL/SOIL.h"

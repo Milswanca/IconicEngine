@@ -2,7 +2,7 @@
 
 #include <glm/detail/type_quat.hpp>
 
-#include "Component.h"
+#include "Core/Components/Component.h"
 #include "World.h"
 
 void Actor::Init()

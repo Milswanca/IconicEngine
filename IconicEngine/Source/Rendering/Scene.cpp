@@ -1,4 +1,6 @@
 ﻿#include "Scene.h"
+#include "Core/Components/Component.h"
+#include "Utils/IndexArray.h"
 
 void Scene::Init()
 {

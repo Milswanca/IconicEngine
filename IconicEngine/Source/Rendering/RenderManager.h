@@ -2,8 +2,11 @@
 #include <vector>
 #include <glm/fwd.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
+
+#include "GBuffer.h"
 #include "Core/Object.h"
 
+class Shader;
 class IDrawable;
 class CameraComponent;
 class RenderTexture;
@@ -20,14 +23,15 @@ public:
         glm::mat4 gProjectionView;
         glm::vec3 gEyePosition;
     };
-    
+
+    static StaticMesh* QuadMesh;
     static UniformBufferObject* CameraBuffer;
     static CameraBufferData CameraData;
     
 public:
     IMPLEMENT_CONSTRUCTOR(RenderManager, Object);
 
-    virtual void Init() override;
+    virtual void PostInit();
     virtual void Shutdown() override;
 
     void BindMaterial(Material* Mat);
@@ -40,13 +44,16 @@ public:
     RenderTexture* GetFramebuffer() const;
     UniformBufferObject* GetUniformBuffer(unsigned int Index) const;
 
+    void Render();
     void RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
 
     void RenderScene(CameraComponent* Camera);
-    void RenderScene(Material* Mat, CameraComponent* Camera);
+    void RenderScene(Shader* Shad, CameraComponent* Camera);
 
     void RegisterDrawable(IDrawable* Drawable);
     void DeregisterDrawable(IDrawable* Drawable);
+
+    void SetMainCamera(CameraComponent* NewMainCamera);
 
 private:
     unsigned int BoundProgramID = 0;
@@ -54,6 +61,8 @@ private:
     Texture* BoundTextures[32];
     UniformBufferObject* BoundBuffers[32];
     RenderTexture* BoundFramebuffer;
+    GBuffer* DeferredBuffer;
+    CameraComponent* MainCamera;
 
     //TODO: Dont use a dynamic array here we dont have to
     std::vector<IDrawable*> Drawables;

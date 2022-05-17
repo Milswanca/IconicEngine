@@ -1,5 +1,5 @@
-﻿#include "AssetFactory.h"
-#include "AssetManager.h"
+﻿#include "Assets/AssetFactory.h"
+#include "Assets/AssetManager.h"
 #include "Core/Engine.h"
 #include "Utils/StringUtils.h"
 

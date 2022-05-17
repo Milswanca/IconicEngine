@@ -4,13 +4,11 @@ layout (location = 1) in vec3 UV_VS_in;
 
 out VS_OUT
 {
-    vec3 Position;
     vec3 UV;
 } vs_out;
 
 void main()
 {
-    vs_out.Position = Position_VS_in;
     vs_out.UV = UV_VS_in;
     gl_Position = vec4(Position_VS_in.x, Position_VS_in.y, 0.0f, 1.0f);
 }

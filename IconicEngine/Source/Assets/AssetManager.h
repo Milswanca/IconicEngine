@@ -5,11 +5,11 @@
 #include <vector>
 
 #include "AssetTypes.h"
-#include "Component.h"
-#include "IndexArray.h"
+#include "Utils/IndexArray.h"
 #include "Core/Object.h"
 #include "Utils/StringUtils.h"
 
+class Component;
 class AssetFactory;
 
 class AssetResource : public Object

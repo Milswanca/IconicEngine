@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "Component.h"
+#include "Core/Components/Component.h"
 #include <glm/ext/matrix_float4x4.hpp>
 
 class CameraComponent : public Component
