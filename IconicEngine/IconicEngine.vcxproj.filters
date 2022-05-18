@@ -240,5 +240,7 @@
     <None Include="Content\Shaders\GBufferSceneVS.shader" />
     <None Include="Content\Shaders\PostProcessFS.shader" />
     <None Include="Content\Shaders\PostProcessVS.shader" />
+    <None Include="Content\Shaders\DrawFullScreenVS.shader" />
+    <None Include="Content\Shaders\DrawFullScreenFS.shader" />
   </ItemGroup>
 </Project>

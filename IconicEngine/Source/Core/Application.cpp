@@ -47,6 +47,35 @@ void Application::Init()
 void Application::Update(float DeltaTime)
 {
     Actor::Update(DeltaTime);
+
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F1))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::FinalColor);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F2))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Position);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F3))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Normal);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F4))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Ambient);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F5))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Albedo);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F6))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Spec);
+	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F7))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Composited);
+	}
 }
 
 void Application::Shutdown()

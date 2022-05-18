@@ -71,13 +71,21 @@ void GBufferDeferred::Init()
     GBufferSceneTarget->AddTexture(4, Texture::TextureFormats::RGB32);
     GBufferSceneTarget->UpdateResource();
 
-    RenderTexture2D::CreateRenderTexture2DParams GBufferCompositeTargetParams;
-    GBufferCompositeTargetParams.Format = Texture::TextureFormats::RGBA32;
-    GBufferCompositeTargetParams.W = 1200;
-    GBufferCompositeTargetParams.H = 800;
-    GBufferCompositeTargetParams.AttachDepthBuffer = false;
-    GBufferCompositeTarget = RenderTexture2D::Create(this, GBufferCompositeTargetParams);
-    GBufferCompositeTarget->UpdateResource();
+	RenderTexture2D::CreateRenderTexture2DParams GBufferCompositeTargetParams;
+	GBufferCompositeTargetParams.Format = Texture::TextureFormats::RGBA32;
+	GBufferCompositeTargetParams.W = 1200;
+	GBufferCompositeTargetParams.H = 800;
+	GBufferCompositeTargetParams.AttachDepthBuffer = false;
+	GBufferCompositeTarget = RenderTexture2D::Create(this, GBufferCompositeTargetParams);
+	GBufferCompositeTarget->UpdateResource();
+
+	RenderTexture2D::CreateRenderTexture2DParams GBufferPostProcessTargetParams;
+	GBufferPostProcessTargetParams.Format = Texture::TextureFormats::RGBA32;
+	GBufferPostProcessTargetParams.W = 1200;
+	GBufferPostProcessTargetParams.H = 800;
+	GBufferPostProcessTargetParams.AttachDepthBuffer = false;
+	GBufferPostProcessTarget = RenderTexture2D::Create(this, GBufferPostProcessTargetParams);
+    GBufferPostProcessTarget->UpdateResource();
 
     GBufferSceneShader = CreateObject<Shader>(this);
     GBufferSceneShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferSceneVS.shader");
@@ -143,6 +151,10 @@ void GBufferDeferred::PreRenderPass(unsigned Pass)
         GBufferCompositeTarget->BindFramebuffer();
         GBufferCompositeTarget->Clear(true);
         break;
+
+    case 2:
+        GBufferPostProcessTarget->BindFramebuffer();
+        GBufferPostProcessTarget->Clear(true);
     }
 }
 
@@ -150,14 +162,40 @@ void GBufferDeferred::PostRenderPass(unsigned Pass)
 {
     GBuffer::PostRenderPass(Pass);
 
-    switch(Pass)
-    {
-    case 0:
-        GetRenderManager()->BindFramebuffer(nullptr);
-        break;
+	GetRenderManager()->BindFramebuffer(nullptr);
+}
 
-    case 1:
-        GetRenderManager()->BindFramebuffer(nullptr);
-        break;
-    }
+Texture2D* GBufferDeferred::GetPositionTexture() const
+{
+    return GBufferSceneTarget->GetTexture(2);
+}
+
+Texture2D* GBufferDeferred::GetNormalTexture() const
+{
+	return GBufferSceneTarget->GetTexture(3);
+}
+
+Texture2D* GBufferDeferred::GetAlbedoTexture() const
+{
+	return GBufferSceneTarget->GetTexture(1);
+}
+
+Texture2D* GBufferDeferred::GetSpecularTexture() const
+{
+	return GBufferSceneTarget->GetTexture(4);
+}
+
+Texture2D* GBufferDeferred::GetAmbientTexture() const
+{
+	return GBufferSceneTarget->GetTexture(0);
+}
+
+Texture2D* GBufferDeferred::GetCompositedTexture() const
+{
+	return GBufferCompositeTarget->GetTexture(0);
+}
+
+Texture2D* GBufferDeferred::GetFinalTexture() const
+{
+	return GBufferPostProcessTarget->GetTexture(0);
 }

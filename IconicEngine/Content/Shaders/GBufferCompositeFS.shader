@@ -1,5 +1,5 @@
 #version 410 core
-layout(location = 0) out vec4 Color_FS_out;
+out vec4 Color_FS_out;
 
 in VS_OUT
 {

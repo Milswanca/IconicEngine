@@ -3,6 +3,7 @@
 
 class Material;
 class Shader;
+class Texture2D;
 class RenderTexture2D;
 
 class GBuffer : public Object
@@ -50,6 +51,14 @@ public:
 
     virtual void Init() override;
     virtual void Shutdown() override;
+
+    Texture2D* GetPositionTexture() const;
+    Texture2D* GetNormalTexture() const;
+    Texture2D* GetAlbedoTexture() const;
+    Texture2D* GetSpecularTexture() const;
+	Texture2D* GetAmbientTexture() const;
+	Texture2D* GetCompositedTexture() const;
+	Texture2D* GetFinalTexture() const;
     
 protected:    
     virtual void PreRenderPass(unsigned Pass) override;
@@ -63,5 +72,6 @@ private:
     Material* PostProcessMaterial;
 
     RenderTexture2D* GBufferSceneTarget;
-    RenderTexture2D* GBufferCompositeTarget;
+	RenderTexture2D* GBufferCompositeTarget;
+	RenderTexture2D* GBufferPostProcessTarget;
 };

@@ -92,6 +92,8 @@
     <ClInclude Include="Source\UniformBufferObject.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Content\Shaders\DrawFullScreenFS.shader" />
+    <None Include="Content\Shaders\DrawFullScreenVS.shader" />
     <None Include="Content\Shaders\FragmentShader.shader" />
     <None Include="Content\Shaders\FullScreenQuadFS.shader" />
     <None Include="Content\Shaders\FullScreenQuadVS.shader" />

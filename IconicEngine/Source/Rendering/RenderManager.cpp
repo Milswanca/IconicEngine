@@ -33,14 +33,40 @@ void RenderManager::PostInit()
         { 0, 1, 2, 2, 1, 3 }
     };
     QuadMesh = StaticMesh::Create(this, SMParams);
+
+    Shader* OutputTargetShader = CreateObject<Shader>(this);
+	OutputTargetShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\DrawFullScreenVS.shader");
+	OutputTargetShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\DrawFullScreenFS.shader");
+    OutputTargetShader->Compile();
+
+    OutputTargetMat = CreateObject<Material>(this);
+    OutputTargetMat->SetShader(OutputTargetShader);
     
     CameraBuffer = CreateObject<UniformBufferObject>(this);
-    DeferredBuffer = CreateObject<GBufferDeferred>(this);
+    CurrentGBuffer = CreateObject<GBufferDeferred>(this);
+
+    SetDrawMode(DrawMode::Deferred);
+    SetDrawOutputTarget(DrawOutputTarget::FinalColor);
 }
 
 void RenderManager::Shutdown()
 {
     Object::Shutdown();
+}
+
+void RenderManager::SetDrawMode(DrawMode NewDrawMode)
+{
+    CurrentDrawMode = NewDrawMode;
+}
+
+void RenderManager::SetDrawOutputTarget(DrawOutputTarget Target)
+{
+    OutputTarget = Target;
+}
+
+void RenderManager::OverrideGBuffer(GBuffer* NewGBuffer)
+{
+    CurrentGBuffer = NewGBuffer;
 }
 
 void RenderManager::BindMaterial(Material* Mat)
@@ -133,11 +159,11 @@ void RenderManager::Render()
 {
     for(unsigned int i = 0; i < GBuffer::MAX_GBUFFER_PASSES; ++i)
     {
-        GBuffer::GBufferPass* Pass = DeferredBuffer->GetPassData(i);
+        GBuffer::GBufferPass* Pass = CurrentGBuffer->GetPassData(i);
 
         if(Pass)
         {
-            DeferredBuffer->PreRenderPass(i);
+            CurrentGBuffer->PreRenderPass(i);
 
             switch(Pass->RenderType)
             {
@@ -150,8 +176,39 @@ void RenderManager::Render()
                 break;
             }
 
-            DeferredBuffer->PostRenderPass(i);
+            CurrentGBuffer->PostRenderPass(i);
         }
+
+        if (CurrentDrawMode == DrawMode::Deferred)
+        {
+            GBufferDeferred* DeferredBuffer = static_cast<GBufferDeferred*>(CurrentGBuffer);
+			switch (OutputTarget)
+			{
+			case DrawOutputTarget::Albedo:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAlbedoTexture());
+				break;
+			case DrawOutputTarget::Ambient:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAmbientTexture());
+				break;
+			case DrawOutputTarget::Position:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetPositionTexture());
+				break;
+			case DrawOutputTarget::Normal:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetNormalTexture());
+				break;
+			case DrawOutputTarget::Spec:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetSpecularTexture());
+				break;
+			case DrawOutputTarget::Composited:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetCompositedTexture());
+				break;
+			case DrawOutputTarget::FinalColor:
+				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetFinalTexture());
+				break;
+			}
+        }
+
+        RenderMesh(MainCamera, glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
     }
 }
 

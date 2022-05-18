@@ -18,6 +18,23 @@ class StaticMesh;
 class RenderManager : public Object
 {
 public:
+    enum class DrawMode
+    {
+        Forward,
+        Deferred
+    };
+
+    enum class DrawOutputTarget
+    {
+        FinalColor,
+        Albedo,
+        Position,
+        Normal,
+        Ambient,
+        Spec,
+        Composited
+    };
+
     struct CameraBufferData
     {
         glm::mat4 gProjectionView;
@@ -33,6 +50,10 @@ public:
 
     virtual void PostInit();
     virtual void Shutdown() override;
+
+	void SetDrawMode(DrawMode NewDrawMode);
+	void SetDrawOutputTarget(DrawOutputTarget Target);
+    void OverrideGBuffer(GBuffer* NewGBuffer);
 
     void BindMaterial(Material* Mat);
     void BindTexture(Texture* Tex, unsigned int Index);
@@ -61,8 +82,13 @@ private:
     Texture* BoundTextures[32];
     UniformBufferObject* BoundBuffers[32];
     RenderTexture* BoundFramebuffer;
-    GBuffer* DeferredBuffer;
     CameraComponent* MainCamera;
+
+    Material* OutputTargetMat;
+    DrawOutputTarget OutputTarget;
+    GBuffer* CurrentGBuffer;
+
+    DrawMode CurrentDrawMode;
 
     //TODO: Dont use a dynamic array here we dont have to
     std::vector<IDrawable*> Drawables;
