@@ -29,7 +29,7 @@ void StaticMeshComponent::Draw(Shader* Shad)
 
 		for (unsigned int i = 0; i < Mesh->GetMeshData()->NumSections; ++i)
 		{
-			Material* DrawMat = Mesh->GetMaterial(i);
+			Material* DrawMat = GetMaterial(i);
 
 			Shader* OldShader = DrawMat->GetShader();
 			if(Shad)
@@ -40,10 +40,10 @@ void StaticMeshComponent::Draw(Shader* Shad)
 			DrawMat->SetVec3("gLightPosition", glm::vec3(1000, 1700, 1000));
 			DrawMat->SetMat4("gModel", LocalToWorld);			
 			DrawMat->Use();
-			DrawMat->BindParameters();
 
 			glDrawElements(GL_TRIANGLES, Mesh->GetMeshData()->Sections[i].NumIndices, GL_UNSIGNED_INT, (GLvoid*)(sizeof(unsigned int) * Mesh->GetMeshData()->Sections[i].IndexOffset));
 
+			GetRenderManager()->BindMaterial(nullptr);
 			DrawMat->SetShader(OldShader);
 		}
 
@@ -54,9 +54,33 @@ void StaticMeshComponent::Draw(Shader* Shad)
 void StaticMeshComponent::SetMesh(StaticMesh* NewMesh)
 {
     Mesh = NewMesh;
+
+	if (NewMesh != nullptr)
+	{
+		for (unsigned int i = 0; i < NewMesh->GetNumMaterials(); ++i)
+		{
+			SetMaterial(i, NewMesh->GetMaterial(i));
+		}
+	}
 }
 
 StaticMesh* StaticMeshComponent::GetMesh() const
 {
     return Mesh;
+}
+
+void StaticMeshComponent::SetMaterial(unsigned int Index, Material* Material)
+{
+	Materials.resize(std::max(Index + 1, (unsigned int)Materials.size()));
+	Materials[Index] = Material;
+}
+
+Material* StaticMeshComponent::GetMaterial(unsigned int Index) const
+{
+	return Materials[Index];
+}
+
+unsigned int StaticMeshComponent::GetNumMaterials() const
+{
+	return Materials.size();
 }

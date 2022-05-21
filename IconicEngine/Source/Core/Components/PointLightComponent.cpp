@@ -1,18 +1,13 @@
 #include "PointLightComponent.h"
 
-void PointLightComponent::SetConstant(float NewConstant)
+void PointLightComponent::SetLightColor(const glm::vec4& Color)
 {
-	//static_cast<PointLightComponent::Data*>(GetLightData())->Constant = NewConstant;
+	static_cast<PointLightComponent::Data*>(GetLightData())->Color = Color;
 }
 
-void PointLightComponent::SetLinear(float NewLinear)
+glm::vec4 PointLightComponent::GetLightColor() const
 {
-	//static_cast<PointLightComponent::Data*>(GetLightData())->Linear = NewLinear;
-}
-
-void PointLightComponent::SetQuadratic(float NewQuadratic)
-{
-	//static_cast<PointLightComponent::Data*>(GetLightData())->Quadratic = NewQuadratic;
+	return static_cast<PointLightComponent::Data*>(GetLightData())->Color;
 }
 
 LightComponent::Data* PointLightComponent::MakeLightData()

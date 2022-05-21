@@ -16,8 +16,13 @@ public:
     void SetMesh(StaticMesh* NewMesh);
     StaticMesh* GetMesh() const;
 
+    void SetMaterial(unsigned int Index, Material* Material);
+    Material* GetMaterial(unsigned int Index) const;
+    unsigned int GetNumMaterials() const;
+
     virtual void Draw(Shader* Shad) override;
 
 private:
     StaticMesh* Mesh;
+    std::vector<Material*> Materials;
 };

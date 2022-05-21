@@ -74,7 +74,7 @@ public:
         {
             for(size_t i = 0; i < Package->Assets.size(); ++i)
             {
-                if(T* Casted = static_cast<T*>(GetAssetObject(Package->Assets[i])))
+                if(T* Casted = dynamic_cast<T*>(GetAssetObject(Package->Assets[i])))
                 {
                     return Casted;
                 }

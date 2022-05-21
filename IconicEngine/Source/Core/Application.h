@@ -24,4 +24,8 @@ public:
     Actor* RootActor;
     FlyCamera* FlyCam;
     PointLightActor* Light;
+    float Angle = 0.0f;
+
+    unsigned int NumLights = 100;
+    StaticMesh* SphereMesh;
 };

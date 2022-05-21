@@ -21,7 +21,7 @@ class StaticMesh;
 class RenderManager : public Object
 {
 public:
-	static const unsigned int MaxPointLights = 8;
+	static const unsigned int MaxPointLights = 500;
 
     enum class DrawMode
     {

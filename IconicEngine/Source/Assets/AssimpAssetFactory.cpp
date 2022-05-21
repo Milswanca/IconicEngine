@@ -234,6 +234,7 @@ Material* AssimpAssetFactory::ProcessMaterial(aiMaterial* aiMat, FProcessScenePa
     Mat->SetFloat("gTex_Height_Power", Tex != nullptr ? 1.0f : 0.0f);
 
     Mat->SetFloat("gParallaxHeightScale", 0.1f);
+    Mat->SetInt("gMaterialID", 1);
 
     return Mat;
 }

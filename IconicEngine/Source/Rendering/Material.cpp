@@ -7,12 +7,14 @@
 #include <iostream>
 
 #include "RenderManager.h"
+#include "glm/ext/matrix_transform.inl"
 
 void Material::Init()
 {
     AssetResource::Init();
 
-    ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::FLOAT)] = sizeof(float);
+	ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::INT)] = sizeof(int);
+	ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::FLOAT)] = sizeof(float);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC2)] = sizeof(glm::vec2);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC3)] = sizeof(glm::vec3);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC4)] = sizeof(glm::vec4);
@@ -38,10 +40,14 @@ void Material::BindParameters()
 {
     for(auto Iter : Values)
     {
-        int Loc = glGetUniformLocation(GetProgramID(), Iter.first.c_str());
+        int Loc = GetUniformLocation(Iter.first);
 
         switch(Iter.second.Type)
         {
+        case ShaderParamTypes::INT:
+            glUniform1i(Loc, *(GLint*)(Iter.second.Value));
+            break;
+
         case ShaderParamTypes::FLOAT:
             glUniform1f(Loc, *(GLfloat*)(Iter.second.Value));
             break;
@@ -68,9 +74,55 @@ void Material::BindParameters()
     BindBuffers();
 }
 
+void Material::UnbindParameters()
+{
+    glm::mat4 emptyMatrix = glm::identity<glm::mat4>();
+	for (auto Iter : Values)
+	{
+		int Loc = GetUniformLocation(Iter.first.c_str());
+
+		switch (Iter.second.Type)
+		{
+		case ShaderParamTypes::INT:
+			glUniform1i(Loc, 0);
+			break;
+
+		case ShaderParamTypes::FLOAT:
+			glUniform1f(Loc, 0.0f);
+			break;
+
+		case ShaderParamTypes::VEC2:
+			glUniform2f(Loc, 0.0f, 0.0f);
+			break;
+
+		case ShaderParamTypes::VEC3:
+			glUniform3f(Loc, 0.0f, 0.0f, 0.0f);
+			break;
+
+		case ShaderParamTypes::VEC4:
+			glUniform4f(Loc, 0.0f, 0.0f, 0.0f, 0.0f);
+			break;
+
+		case ShaderParamTypes::MAT4:
+			glUniformMatrix4fv(Loc, 1, GL_FALSE, (GLfloat*)&emptyMatrix);
+			break;
+		}
+	}
+
+	UnbindTextures();
+	UnbindBuffers();
+}
+
 bool Material::DoesParamExist(const std::string& Name) const
 {
-    return MatShader && glGetUniformLocation(GetProgramID(), Name.c_str()) != -1;
+    return MatShader && GetUniformLocation(Name.c_str()) != -1;
+}
+
+void Material::SetInt(const std::string& Name, int Value)
+{
+	AddParameter(Name, ShaderParamTypes::INT);
+
+	memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::INT)]);
 }
 
 void Material::SetFloat(const std::string& Name, float Value)
@@ -78,7 +130,6 @@ void Material::SetFloat(const std::string& Name, float Value)
     AddParameter(Name, ShaderParamTypes::FLOAT);
 
     memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::FLOAT)]);
-    unsigned int Loc = GetUniformLocation(Name);
 }
 
 void Material::SetVec2(const std::string& Name, const glm::vec2& Value)
@@ -86,7 +137,6 @@ void Material::SetVec2(const std::string& Name, const glm::vec2& Value)
     AddParameter(Name, ShaderParamTypes::VEC2);
 
     memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC2)]);
-    unsigned int Loc = GetUniformLocation(Name);
 }
 
 void Material::SetVec3(const std::string& Name, const glm::vec3& Value)
@@ -94,7 +144,6 @@ void Material::SetVec3(const std::string& Name, const glm::vec3& Value)
     AddParameter(Name, ShaderParamTypes::VEC3);
 
     memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC3)]);
-    unsigned int Loc = GetUniformLocation(Name);
 }
 
 void Material::SetVec4(const std::string& Name, const glm::vec4& Value)
@@ -102,7 +151,6 @@ void Material::SetVec4(const std::string& Name, const glm::vec4& Value)
     AddParameter(Name, ShaderParamTypes::VEC4);
 
     memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC4)]);
-    unsigned int Loc = GetUniformLocation(Name);
 }
 
 void Material::SetMat4(const std::string& Name, const glm::mat4& Value)
@@ -110,7 +158,6 @@ void Material::SetMat4(const std::string& Name, const glm::mat4& Value)
     AddParameter(Name, ShaderParamTypes::MAT4);
 
     memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::MAT4)]);
-    unsigned int Loc = GetUniformLocation(Name);
 }
 
 void Material::SetTexture(const std::string& Name, Texture* Value)
@@ -153,6 +200,17 @@ void Material::SetBuffer(const std::string& Name, UniformBufferObject* Value)
         BufferParamNames[NumBuffers] = Name;
         NumBuffers++;
     }
+}
+
+bool Material::GetInt(const std::string& Name, int& OutValue) const
+{
+	void* ParamValue;
+
+	if (!GetParameter(Name, ParamValue))
+		return false;
+
+	memcpy(&OutValue, ParamValue, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::INT)]);
+	return true;
 }
 
 bool Material::GetFloat(const std::string& Name, float& OutValue) const
@@ -259,9 +317,30 @@ void Material::BindBuffers()
 {
     for(unsigned int i = 0; i < NumBuffers; ++i)
     {
-        GLuint Loc = glGetUniformBlockIndex(GetProgramID(), BufferParamNames[i].c_str());
+        GLuint Loc = GetUniformBlockIndex(BufferParamNames[i]);
         glUniformBlockBinding(GetProgramID(), Loc, Buffers[i]->GetBoundIndex());
     }
+}
+
+void Material::UnbindTextures()
+{
+	for (unsigned int i = 0; i < NumTextureParams; ++i)
+	{
+		glActiveTexture(GL_TEXTURE0 + i);
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		unsigned int Loc = GetUniformLocation(TextureParamNames[i]);
+		glUniform1i(Loc, 0);
+	}
+}
+
+void Material::UnbindBuffers()
+{
+	for (unsigned int i = 0; i < NumBuffers; ++i)
+	{
+        GLuint Loc = GetUniformBlockIndex(BufferParamNames[i]);
+		glUniformBlockBinding(GetProgramID(), Loc, 0);
+	}
 }
 
 void Material::SetShader(Shader* NewShader)
@@ -281,16 +360,22 @@ unsigned Material::GetProgramID() const
 
 int Material::GetUniformLocation(const std::string& Name) const
 {
-    return glGetUniformLocation(GetProgramID(), Name.c_str());
+    return MatShader->GetUniformLocation(Name);
+}
+
+int Material::GetUniformBlockIndex(const std::string& Name) const
+{
+    return MatShader->GetUniformBlockIndex(Name);
 }
 
 void Material::MaterialBound()
 {
-
+    BindParameters();
 }
 
 void Material::MaterialUnbound()
 {
+    UnbindParameters();
 }
 
 void Material::AddParameter(const std::string& Name, ShaderParamTypes Type)

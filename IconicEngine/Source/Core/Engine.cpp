@@ -55,7 +55,7 @@ int Engine::Init()
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     
-    _Window = glfwCreateWindow(1200, 800, "LearnOpenGL", NULL, NULL);
+    _Window = glfwCreateWindow(1400, 800, "LearnOpenGL", NULL, NULL);
     if (_Window == NULL)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -71,7 +71,7 @@ int Engine::Init()
         return -1;
     }
 
-    glViewport(0, 0, 1200, 800);
+    glViewport(0, 0, 1400, 800);
     
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);

@@ -6,15 +6,14 @@ class PointLightComponent : public LightComponent
 public:
 	struct Data : public LightComponent::Data
 	{
-		float Radius = 1000.0f;
+		float Radius = 300.0f;
 		glm::vec3 Padding;
 	};
 
 	IMPLEMENT_CONSTRUCTOR(PointLightComponent, LightComponent);
 
-	void SetConstant(float NewConstant);
-	void SetLinear(float NewLinear);
-	void SetQuadratic(float NewQuadratic);
+	void SetLightColor(const glm::vec4& Color);
+	glm::vec4 GetLightColor() const;
 
 protected:
 	virtual LightComponent::Data* MakeLightData() override;

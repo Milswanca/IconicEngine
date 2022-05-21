@@ -95,6 +95,8 @@ void Transform::SetParent(Transform* NewParent)
     {
         Parent->AddChild(this);
     }
+
+    ApplyTransformation();
 }
 
 Transform* Transform::GetParent() const

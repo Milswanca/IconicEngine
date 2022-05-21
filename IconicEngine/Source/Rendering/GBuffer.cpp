@@ -61,7 +61,7 @@ void GBufferDeferred::Init()
 
     RenderTexture2D::CreateRenderTexture2DParams GBufferSceneTargetParams;
     GBufferSceneTargetParams.Format = Texture::TextureFormats::RGB8;
-    GBufferSceneTargetParams.W = 1200;
+    GBufferSceneTargetParams.W = 1400;
     GBufferSceneTargetParams.H = 800;
     GBufferSceneTargetParams.AttachDepthBuffer = true;
     GBufferSceneTarget = RenderTexture2D::Create(this, GBufferSceneTargetParams);
@@ -73,7 +73,7 @@ void GBufferDeferred::Init()
 
 	RenderTexture2D::CreateRenderTexture2DParams GBufferCompositeTargetParams;
 	GBufferCompositeTargetParams.Format = Texture::TextureFormats::RGBA32;
-	GBufferCompositeTargetParams.W = 1200;
+	GBufferCompositeTargetParams.W = 1400;
 	GBufferCompositeTargetParams.H = 800;
 	GBufferCompositeTargetParams.AttachDepthBuffer = false;
 	GBufferCompositeTarget = RenderTexture2D::Create(this, GBufferCompositeTargetParams);
@@ -81,7 +81,7 @@ void GBufferDeferred::Init()
 
 	RenderTexture2D::CreateRenderTexture2DParams GBufferPostProcessTargetParams;
 	GBufferPostProcessTargetParams.Format = Texture::TextureFormats::RGBA32;
-	GBufferPostProcessTargetParams.W = 1200;
+	GBufferPostProcessTargetParams.W = 1400;
 	GBufferPostProcessTargetParams.H = 800;
 	GBufferPostProcessTargetParams.AttachDepthBuffer = false;
 	GBufferPostProcessTarget = RenderTexture2D::Create(this, GBufferPostProcessTargetParams);
@@ -108,7 +108,7 @@ void GBufferDeferred::Init()
     GBufferCompositeMaterial->SetTexture("gTex_Albedo", GBufferSceneTarget->GetTexture(1));
     GBufferCompositeMaterial->SetTexture("gTex_Position", GBufferSceneTarget->GetTexture(2));
     GBufferCompositeMaterial->SetTexture("gTex_Normal", GBufferSceneTarget->GetTexture(3));
-    GBufferCompositeMaterial->SetTexture("gTex_Shine", GBufferSceneTarget->GetTexture(4));
+    GBufferCompositeMaterial->SetTexture("gTex_ShineMatID", GBufferSceneTarget->GetTexture(4));
 
     PostProcessMaterial = CreateObject<Material>(this);
     PostProcessMaterial->SetShader(PostProcessShader);

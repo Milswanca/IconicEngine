@@ -93,13 +93,12 @@ void RenderManager::BindMaterial(Material* Mat)
     if(BoundMat)
         BoundMat->MaterialUnbound();
 
-    if(Mat->GetProgramID() != BoundProgramID)
-        glUseProgram(Mat != nullptr ? Mat->GetProgramID() : 0);
-
-    BoundProgramID = Mat->GetProgramID();
+    int NewProgramID = Mat != nullptr ? Mat->GetProgramID() : 0;
+    glUseProgram(NewProgramID);
+    BoundProgramID = NewProgramID;
     BoundMat = Mat;
 
-    if(BoundMat)
+    if (BoundMat)
         BoundMat->MaterialBound();
 }
 
@@ -245,10 +244,11 @@ void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, 
 			Mat->SetVec3("gLightPosition", glm::vec3(1000, 1700, 1000));
 			Mat->SetMat4("gModel", Model);
 			Mat->Use();
-			Mat->BindParameters();
 
 			glDrawElements(GL_TRIANGLES, Mesh->GetMeshData()->Sections[i].NumIndices, GL_UNSIGNED_INT, (GLvoid*)(sizeof(unsigned int) * Mesh->GetMeshData()->Sections[i].IndexOffset));
-		}
+		
+            BindMaterial(nullptr);
+        }
 
 		glBindVertexArray(0);
 	}
@@ -261,13 +261,9 @@ void RenderManager::RenderScene(CameraComponent* Camera)
 
 void RenderManager::RenderScene(Shader* Shad, CameraComponent* Camera)
 {
-    int err = glGetError();
 	BufferCameraData(Camera);
-	err = glGetError();
 	BufferLightData();
-	err = glGetError();
 	CameraBuffer->Bind(0);
-	err = glGetError();
 	LightBuffer->Bind(1);
 
 
@@ -310,7 +306,7 @@ void RenderManager::BufferLightData()
 
         if (PointLightComponent::Data* PointLightData = static_cast<PointLightComponent::Data*>(CurrLightData))
         {
-            memcpy(&LightData.PointLights[LightData.NumPointLights], PointLightData, sizeof(PointLightData));
+            memcpy(&LightData.PointLights[i], PointLightData, sizeof(PointLightComponent::Data));
             LightData.NumPointLights++;
         }
     }

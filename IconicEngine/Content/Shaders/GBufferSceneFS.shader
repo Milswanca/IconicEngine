@@ -3,7 +3,7 @@ layout(location = 0) out vec3 gAmbient;
 layout(location = 1) out vec3 gAlbedo;
 layout(location = 2) out vec3 gPosition;
 layout(location = 3) out vec3 gNormal;
-layout(location = 4) out vec3 gShine;
+layout(location = 4) out vec3 gShineMatID;
 
 in VS_OUT
 {
@@ -30,6 +30,7 @@ uniform sampler2D gTex_SpecularMask;
 uniform float gTex_SpecularMask_Power;
 
 // Uniforms
+uniform int gMaterialID;
 uniform vec3 gAmbientColor;
 
 float select(float a, float b, float chooseB)
@@ -51,8 +52,9 @@ void main()
     gAlbedo.xyz = select(gDiffuseColor, texture(gTex_Diffuse, fs_in.UV.xy).xyz, gTex_Diffuse_Power);
 
     // Specular
-    gShine.r = gShininessStrength * select(1.0f, texture(gTex_SpecularMask, fs_in.UV.xy).x, gTex_SpecularMask_Power);
-    gShine.g = gShininess;
+    gShineMatID.r = gShininessStrength * select(1.0f, texture(gTex_SpecularMask, fs_in.UV.xy).x, gTex_SpecularMask_Power);
+    gShineMatID.g = gShininess;
+    gShineMatID.b = gMaterialID;
 
     // Position
     gPosition = fs_in.Position;
