@@ -1,6 +1,13 @@
 #include "UniformBufferObject.h"
-
+#include "Core/Engine.h"
 #include "RenderManager.h"
+
+UniformBufferObject* UniformBufferObject::Create(Object* NewOuter, unsigned int SizeBytes)
+{
+    UniformBufferObject* Buffer = Engine::Get()->CreateObject<UniformBufferObject>(NewOuter);
+    Buffer->SetBufferSize(SizeBytes);
+    return Buffer;
+}
 
 void UniformBufferObject::Init()
 {
@@ -14,6 +21,22 @@ void UniformBufferObject::Shutdown()
     Object::Shutdown();
 
     glDeleteBuffers(1, &UBO);
+}
+
+void UniformBufferObject::SetBufferSize(unsigned int SizeBytes)
+{
+    BufferSize = SizeBytes;
+
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferData(GL_UNIFORM_BUFFER, SizeBytes, NULL, GL_STATIC_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void UniformBufferObject::ClearBufferData()
+{
+	glBindBuffer(GL_UNIFORM_BUFFER, UBO);
+	glBufferSubData(GL_UNIFORM_BUFFER, 0, BufferSize, NULL);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 }
 
 void UniformBufferObject::Bind(unsigned Index)

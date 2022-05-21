@@ -16,6 +16,7 @@
 #include "Core/Components/StaticMeshComponent.h"
 #include "Core/Actors/FlyCamera.h"
 #include "Core/Actors/StaticMeshActor.h"
+#include "Core/Actors/PointLightActor.h"
 
 void Application::Init()
 {
@@ -38,6 +39,8 @@ void Application::Init()
         Meshes.push_back(SMActor);
     }
     
+	Light = Engine::Get()->GetActiveWorld()->SpawnActor<PointLightActor>();
+
     FlyCam = Engine::Get()->GetActiveWorld()->SpawnActor<FlyCamera>();
     //FlyCam->SetRotation(glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
     FlyCam->SetPosition(-FlyCam->GetForward() * 20.0f);

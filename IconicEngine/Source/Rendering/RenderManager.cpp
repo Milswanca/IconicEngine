@@ -12,6 +12,10 @@
 
 UniformBufferObject* RenderManager::CameraBuffer = nullptr;
 RenderManager::CameraBufferData RenderManager::CameraData;
+
+UniformBufferObject* RenderManager::LightBuffer = nullptr;
+RenderManager::LightBufferData RenderManager::LightData;
+
 StaticMesh* RenderManager::QuadMesh = nullptr;
 
 void RenderManager::PostInit()
@@ -42,7 +46,9 @@ void RenderManager::PostInit()
     OutputTargetMat = CreateObject<Material>(this);
     OutputTargetMat->SetShader(OutputTargetShader);
     
-    CameraBuffer = CreateObject<UniformBufferObject>(this);
+    CameraBuffer = UniformBufferObject::Create(this, sizeof(CameraBufferData));
+	LightBuffer = UniformBufferObject::Create(this, sizeof(LightBufferData));
+
     CurrentGBuffer = CreateObject<GBufferDeferred>(this);
 
     SetDrawMode(DrawMode::Deferred);
@@ -67,6 +73,16 @@ void RenderManager::SetDrawOutputTarget(DrawOutputTarget Target)
 void RenderManager::OverrideGBuffer(GBuffer* NewGBuffer)
 {
     CurrentGBuffer = NewGBuffer;
+}
+
+void RenderManager::RegisterLight(LightComponent* Light)
+{
+    Lights.push_back(Light);
+}
+
+void RenderManager::DeregisterLight(LightComponent* Light)
+{
+    std::remove(Lights.begin(), Lights.end(), Light);
 }
 
 void RenderManager::BindMaterial(Material* Mat)
@@ -214,10 +230,10 @@ void RenderManager::Render()
 
 void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
 {
-	CameraData.gEyePosition = Camera->GetPosition();
-	CameraData.gProjectionView = Camera->GetProjectionView();
-	CameraBuffer->BufferData(&CameraData);
+    BufferCameraData(Camera);
+    BufferLightData();
 	CameraBuffer->Bind(0);
+    LightBuffer->Bind(1);
 
 	if (Mesh)
 	{
@@ -245,10 +261,15 @@ void RenderManager::RenderScene(CameraComponent* Camera)
 
 void RenderManager::RenderScene(Shader* Shad, CameraComponent* Camera)
 {
-	CameraData.gEyePosition = Camera->GetPosition();
-	CameraData.gProjectionView = Camera->GetProjectionView();
-	CameraBuffer->BufferData(&CameraData);
+    int err = glGetError();
+	BufferCameraData(Camera);
+	err = glGetError();
+	BufferLightData();
+	err = glGetError();
 	CameraBuffer->Bind(0);
+	err = glGetError();
+	LightBuffer->Bind(1);
+
 
 	for (size_t i = 0; i < Drawables.size(); ++i)
 	{
@@ -269,4 +290,30 @@ void RenderManager::DeregisterDrawable(IDrawable* Drawable)
 void RenderManager::SetMainCamera(CameraComponent* NewMainCamera)
 {
     MainCamera = NewMainCamera;
+}
+
+void RenderManager::BufferCameraData(CameraComponent* Camera)
+{
+	CameraData.gEyePosition = Camera->GetPosition();
+	CameraData.gProjectionView = Camera->GetProjectionView();
+	CameraBuffer->BufferData(&CameraData, 0);
+}
+
+void RenderManager::BufferLightData()
+{
+    LightBuffer->ClearBufferData();
+    LightData.NumPointLights = 0;
+
+    for (int i = 0; i < Lights.size(); ++i)
+    {
+        LightComponent::Data* CurrLightData = Lights[i]->GetLightData();
+
+        if (PointLightComponent::Data* PointLightData = static_cast<PointLightComponent::Data*>(CurrLightData))
+        {
+            memcpy(&LightData.PointLights[LightData.NumPointLights], PointLightData, sizeof(PointLightData));
+            LightData.NumPointLights++;
+        }
+    }
+
+    LightBuffer->BufferData(&LightData, 0);
 }

@@ -20,7 +20,8 @@ void Material::Init()
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::TEXTURE)] = sizeof(UniformBufferObject*);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::BUFFER)] = sizeof(unsigned int);
 
-    SetBuffer("Camera", RenderManager::CameraBuffer);
+	SetBuffer("Camera", RenderManager::CameraBuffer);
+	SetBuffer("Lights", RenderManager::LightBuffer);
 }
 
 void Material::Shutdown()

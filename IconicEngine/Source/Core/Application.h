@@ -8,6 +8,7 @@ class RenderTexture2D;
 class StaticMeshActor;
 class StaticMesh;
 class FlyCamera;
+class PointLightActor;
 
 class Application : public Actor
 {    
@@ -22,4 +23,5 @@ public:
     std::vector<StaticMeshActor*> Meshes;
     Actor* RootActor;
     FlyCamera* FlyCam;
+    PointLightActor* Light;
 };

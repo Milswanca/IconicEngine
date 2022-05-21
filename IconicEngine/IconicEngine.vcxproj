@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Core\Actors\PointLightActor.cpp" />
+    <ClCompile Include="Source\Core\Components\PointLightComponent.cpp" />
+    <ClCompile Include="Source\Core\Components\LightComponent.cpp" />
     <ClCompile Include="Source\Core\Actors\FlyCamera.cpp" />
     <ClCompile Include="Source\Core\Actors\StaticMeshActor.cpp" />
     <ClCompile Include="Source\Core\Components\CameraComponent.cpp" />
@@ -56,6 +59,9 @@
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Actors\PointLightActor.h" />
+    <ClInclude Include="Source\Core\Components\PointLightComponent.h" />
+    <ClInclude Include="Source\Core\Components\LightComponent.h" />
     <ClInclude Include="Source\Core\Actors\FlyCamera.h" />
     <ClInclude Include="Source\Core\Actors\StaticMeshActor.h" />
     <ClInclude Include="Source\Core\Components\CameraComponent.h" />

@@ -51,9 +51,8 @@ void main()
     gAlbedo.xyz = select(gDiffuseColor, texture(gTex_Diffuse, fs_in.UV.xy).xyz, gTex_Diffuse_Power);
 
     // Specular
-    gShine.r = select(1.0f, texture(gTex_SpecularMask, fs_in.UV.xy).x, gTex_SpecularMask_Power);
+    gShine.r = gShininessStrength * select(1.0f, texture(gTex_SpecularMask, fs_in.UV.xy).x, gTex_SpecularMask_Power);
     gShine.g = gShininess;
-    gShine.b = gShininessStrength;
 
     // Position
     gPosition = fs_in.Position;

@@ -5,7 +5,10 @@
 
 #include "GBuffer.h"
 #include "Core/Object.h"
+#include "Core/Components/PointLightComponent.h"
 
+class LightComponent;
+class PointLightComponent;
 class Shader;
 class IDrawable;
 class CameraComponent;
@@ -18,6 +21,8 @@ class StaticMesh;
 class RenderManager : public Object
 {
 public:
+	static const unsigned int MaxPointLights = 8;
+
     enum class DrawMode
     {
         Forward,
@@ -39,12 +44,23 @@ public:
     {
         glm::mat4 gProjectionView;
         glm::vec3 gEyePosition;
+        float Padding;
+    };
+
+    struct LightBufferData
+    {
+        PointLightComponent::Data PointLights[MaxPointLights];
+        int NumPointLights;
     };
 
     static StaticMesh* QuadMesh;
+
     static UniformBufferObject* CameraBuffer;
     static CameraBufferData CameraData;
-    
+
+    static UniformBufferObject* LightBuffer;
+    static LightBufferData LightData;
+
 public:
     IMPLEMENT_CONSTRUCTOR(RenderManager, Object);
 
@@ -54,6 +70,9 @@ public:
 	void SetDrawMode(DrawMode NewDrawMode);
 	void SetDrawOutputTarget(DrawOutputTarget Target);
     void OverrideGBuffer(GBuffer* NewGBuffer);
+
+    void RegisterLight(LightComponent* Light);
+    void DeregisterLight(LightComponent* Light);
 
     void BindMaterial(Material* Mat);
     void BindTexture(Texture* Tex, unsigned int Index);
@@ -77,6 +96,10 @@ public:
     void SetMainCamera(CameraComponent* NewMainCamera);
 
 private:
+    void BufferCameraData(CameraComponent* Camera);
+    void BufferLightData();
+
+private:
     unsigned int BoundProgramID = 0;
     Material* BoundMat;
     Texture* BoundTextures[32];
@@ -92,5 +115,6 @@ private:
 
     //TODO: Dont use a dynamic array here we dont have to
     std::vector<IDrawable*> Drawables;
+    std::vector<LightComponent*> Lights;
 };
 
