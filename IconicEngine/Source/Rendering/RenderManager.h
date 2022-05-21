@@ -6,6 +6,7 @@
 #include "GBuffer.h"
 #include "Core/Object.h"
 #include "Core/Components/PointLightComponent.h"
+#include "Core/Components/DirectionalLightComponent.h"
 
 class LightComponent;
 class PointLightComponent;
@@ -21,7 +22,8 @@ class StaticMesh;
 class RenderManager : public Object
 {
 public:
-	static const unsigned int MaxPointLights = 500;
+	static const unsigned int MaxDirectionalLights = 8;
+	static const unsigned int MaxPointLights = 100;
 
     enum class DrawMode
     {
@@ -50,7 +52,10 @@ public:
     struct LightBufferData
     {
         PointLightComponent::Data PointLights[MaxPointLights];
-        int NumPointLights;
+        DirectionalLightComponent::Data DirectionalLights[MaxDirectionalLights];
+
+		int NumPointLights;
+		int NumDirectionalLights;
     };
 
     static StaticMesh* QuadMesh;

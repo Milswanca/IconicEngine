@@ -17,13 +17,20 @@ struct FragmentData
     int MaterialID;
 };
 
-uniform sampler2D gTex_Position;
-uniform sampler2D gTex_Normal;
-uniform sampler2D gTex_Albedo;
-uniform sampler2D gTex_Ambient;
-uniform sampler2D gTex_ShineMatID;
+struct PointLight
+{
+    vec4 Position;
+    vec4 LightColor;
+    float Intensity;
+    float Radius;
+};
 
-uniform vec3 gLightPosition;
+struct DirectionalLight
+{
+    vec4 Direction;
+    vec4 LightColor;
+    float Intensity;
+};
 
 layout(std140) uniform Camera
 {
@@ -32,19 +39,24 @@ layout(std140) uniform Camera
     float Padding;
 };
 
-struct PointLight
-{
-    vec4 Position;
-    vec4 LightColor;
-    float Radius;
-};
-
-#define MAX_POINT_LIGHTS 500
+#define MAX_POINT_LIGHTS 100
+#define MAX_DIRECTIONAL_LIGHTS 8
 layout(std140) uniform Lights
 {
     PointLight PointLights[MAX_POINT_LIGHTS];
+    DirectionalLight DirectionalLights[MAX_DIRECTIONAL_LIGHTS];
+    
     int NumPointLights;
+    int NumDirectionalLights;
 };
+
+uniform sampler2D gTex_Position;
+uniform sampler2D gTex_Normal;
+uniform sampler2D gTex_Albedo;
+uniform sampler2D gTex_Ambient;
+uniform sampler2D gTex_ShineMatID;
+
+uniform vec3 gLightPosition;
 
 float GetAttenuation(PointLight _light, vec3 _fragPos)
 {
@@ -54,12 +66,12 @@ float GetAttenuation(PointLight _light, vec3 _fragPos)
     return attenuation;
 }
 
-vec3 ProcessUnlit(PointLight _light, FragmentData _fragment)
+vec3 ProcessUnlit(PointLight _light, FragmentData _fragment, vec3 _result)
 {
-    return vec3(1);
+    return _fragment.Albedo;
 }
 
-vec3 ProcessPhong(PointLight _light, FragmentData _fragment)
+vec3 ProcessPhong(PointLight _light, FragmentData _fragment, vec3 _result)
 {
     vec3 viewDir = normalize(gEyePosition - _fragment.Position);
     vec3 lightDir = normalize(_light.Position.xyz - _fragment.Position);
@@ -72,20 +84,52 @@ vec3 ProcessPhong(PointLight _light, FragmentData _fragment)
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), _fragment.Shininess) * _fragment.Specular;
 
     float attenuation = GetAttenuation(_light, _fragment.Position);
-    vec3 ambient = _fragment.Ambient * attenuation * _light.LightColor.rgb;
-    vec3 diffuse = diff * attenuation * _light.LightColor.rgb;
+    vec3 diffuse = _fragment.Albedo * diff * attenuation * _light.LightColor.rgb;
     vec3 specular = _fragment.Specular * spec * attenuation * _light.LightColor.rgb;
-    return diffuse + specular;
+    return _result + (diffuse + specular) * _light.Intensity;
 }
 
-vec3 ProcessPointLight(PointLight _light, FragmentData _fragment)
+vec3 ProcessPointLight(PointLight _light, FragmentData _fragment, vec3 _result)
 {
     switch (_fragment.MaterialID)
     {
     case 0:
-        return ProcessUnlit(_light, _fragment);
+        return ProcessUnlit(_light, _fragment, _result);
     case 1:
-        return ProcessPhong(_light, _fragment);
+        return ProcessPhong(_light, _fragment, _result);
+    }
+}
+
+vec3 ProcessUnlit(DirectionalLight _light, FragmentData _fragment, vec3 _result)
+{
+    return _fragment.Albedo;
+}
+
+vec3 ProcessPhong(DirectionalLight _light, FragmentData _fragment, vec3 _result)
+{
+    vec3 viewDir = normalize(gEyePosition - _fragment.Position);
+    vec3 lightDir = _light.Direction.xyz;
+
+    // diffuse shading
+    float diff = max(dot(_fragment.Normal, lightDir), 0.0);
+
+    // specular shading
+    vec3 reflectDir = reflect(-lightDir, _fragment.Normal);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0), _fragment.Shininess) * _fragment.Specular;
+
+    vec3 diffuse = _fragment.Albedo * diff * _light.LightColor.rgb;
+    vec3 specular = _fragment.Specular * spec * _light.LightColor.rgb;
+    return _result + (diffuse + specular) * _light.Intensity;
+}
+
+vec3 ProcessDirectionalLight(DirectionalLight _light, FragmentData _fragment, vec3 _result)
+{
+    switch (_fragment.MaterialID)
+    {
+    case 0:
+        return ProcessUnlit(_light, _fragment, _result);
+    case 1:
+        return ProcessPhong(_light, _fragment, _result);
     }
 }
 
@@ -105,9 +149,16 @@ void main()
     vec3 result = vec3(0.0f);
     for (int i = 0; i < NumPointLights; ++i)
     {
-        result += ProcessPointLight(PointLights[i], frag);
+        result = ProcessPointLight(PointLights[i], frag, result);
     }
 
+    for (int i = 0; i < NumDirectionalLights; ++i)
+    {
+        result = ProcessDirectionalLight(DirectionalLights[i], frag, result);
+    }
+
+    result = clamp(result, 0, 1);
+
     // Result
-    Color_FS_out = vec4(result * frag.Albedo, 1.0f);
+    Color_FS_out = vec4(result, 1.0f);
 }

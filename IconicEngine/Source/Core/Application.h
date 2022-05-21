@@ -23,9 +23,8 @@ public:
     std::vector<StaticMeshActor*> Meshes;
     Actor* RootActor;
     FlyCamera* FlyCam;
-    PointLightActor* Light;
     float Angle = 0.0f;
 
-    unsigned int NumLights = 100;
+    unsigned int NumLights = 10;
     StaticMesh* SphereMesh;
 };

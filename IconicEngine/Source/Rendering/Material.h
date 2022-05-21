@@ -28,8 +28,6 @@ class Material : public AssetResource
         VEC3,
         VEC4,
         MAT4,
-        TEXTURE,
-        BUFFER,
         COUNT
     };
     

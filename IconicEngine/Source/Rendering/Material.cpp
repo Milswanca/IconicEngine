@@ -19,8 +19,6 @@ void Material::Init()
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC3)] = sizeof(glm::vec3);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::VEC4)] = sizeof(glm::vec4);
     ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::MAT4)] = sizeof(glm::mat4);
-    ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::TEXTURE)] = sizeof(UniformBufferObject*);
-    ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::BUFFER)] = sizeof(unsigned int);
 
 	SetBuffer("Camera", RenderManager::CameraBuffer);
 	SetBuffer("Lights", RenderManager::LightBuffer);
@@ -162,9 +160,6 @@ void Material::SetMat4(const std::string& Name, const glm::mat4& Value)
 
 void Material::SetTexture(const std::string& Name, Texture* Value)
 {
-    AddParameter(Name, ShaderParamTypes::TEXTURE);
-    memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::TEXTURE)]);
-
     int Index = FindTextureParamIndex(Name);
     if (Index != -1)
     {
@@ -183,9 +178,6 @@ void Material::SetTexture(const std::string& Name, Texture* Value)
 
 void Material::SetBuffer(const std::string& Name, UniformBufferObject* Value)
 {
-    AddParameter(Name, ShaderParamTypes::BUFFER);
-    memcpy(Values[Name].Value, &Value, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::BUFFER)]);
-
     int Index = FindBufferParamIndex(Name);
     if (Index != -1)
     {
@@ -282,13 +274,14 @@ bool Material::GetTexture(const std::string& Name, Texture*& OutValue) const
 
 bool Material::GetBuffer(const std::string& Name, UniformBufferObject*& OutValue) const
 {
-    void* ParamValue;
+	int Index = FindTextureParamIndex(Name);
 
-    if (!GetParameter(Name, ParamValue))
-        return false;
+	if (Index != -1)
+	{
+		OutValue = Buffers[Index];
+	}
 
-    memcpy(&OutValue, ParamValue, ParamSizesBytes[static_cast<unsigned int>(ShaderParamTypes::BUFFER)]);
-    return true;
+	return Index != -1;
 }
 
 void Material::SetName(const std::string& NewName)

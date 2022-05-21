@@ -17,6 +17,7 @@
 #include "Core/Actors/FlyCamera.h"
 #include "Core/Actors/StaticMeshActor.h"
 #include "Core/Actors/PointLightActor.h"
+#include "Core/Actors/DirectionalLightActor.h"
 
 void Application::Init()
 {
@@ -46,6 +47,11 @@ void Application::Init()
     FlyCam->SetPosition(-FlyCam->GetForward() * 20.0f);
 	GetRenderManager()->SetMainCamera(FlyCam->GetCameraComponent());
 
+	DirectionalLightActor* DirectionalLight = Engine::Get()->GetActiveWorld()->SpawnActor<DirectionalLightActor>();
+	glm::quat Rot = glm::quat(glm::vec3(0.0f, glm::radians(45.0f), glm::radians(45.0f)));
+	DirectionalLight->SetLocalRotation(Rot);
+	DirectionalLight->GetDirectionalLightComponent()->SetIntensity(2.0f);
+
 	for (unsigned int i = 0; i < NumLights; ++i)
 	{
 		float x = ((rand() % 10000) / 10000.0f) - 0.5f;
@@ -64,17 +70,17 @@ void Application::Init()
 		float g = (rand() % 1000) / 1000.0f;
 		float b = (rand() % 1000) / 1000.0f;
 
-		Light = Engine::Get()->GetActiveWorld()->SpawnActor<PointLightActor>();
+		PointLightActor* Light = Engine::Get()->GetActiveWorld()->SpawnActor<PointLightActor>();
 		Light->GetRootComponent()->AttachTo(RootActor->GetRootComponent());
-		Light->GetPointLightComponent()->SetLightColor(glm::vec4(r, g, b, 1.0f));
+		Light->GetPointLightComponent()->SetColor(glm::vec4(r, g, b, 1.0f));
 		Light->SetPosition(glm::vec3(Position));
 
-		//StaticMeshComponent* Comp = Light->AddComponent<StaticMeshComponent>();
-		//Comp->AttachTo(Light->GetRootComponent());
-		//Comp->SetMesh(SphereMesh);
-		//Comp->SetMaterial(0, Mat);
-		//Mat->SetVec3("gDiffuseColor", glm::vec3(Light->GetPointLightComponent()->GetLightColor()));
-		//Mat->SetInt("gMaterialID", 0);
+		StaticMeshComponent* Comp = Light->AddComponent<StaticMeshComponent>();
+		Comp->AttachTo(Light->GetRootComponent());
+		Comp->SetMesh(SphereMesh);
+		Comp->SetMaterial(0, Mat);
+		Mat->SetVec3("gDiffuseColor", glm::vec3(Light->GetPointLightComponent()->GetColor()));
+		Mat->SetInt("gMaterialID", 0);
 	}
 }
 

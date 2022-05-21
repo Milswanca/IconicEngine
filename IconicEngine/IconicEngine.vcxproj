@@ -19,6 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\Core\Actors\DirectionalLightActor.cpp" />
+    <ClCompile Include="Source\Core\Components\DirectionalLightComponent.cpp" />
     <ClCompile Include="Source\Core\Actors\PointLightActor.cpp" />
     <ClCompile Include="Source\Core\Components\PointLightComponent.cpp" />
     <ClCompile Include="Source\Core\Components\LightComponent.cpp" />
@@ -59,6 +61,8 @@
     <ClCompile Include="Source\Utils\StringUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Core\Actors\DirectionalLightActor.h" />
+    <ClInclude Include="Source\Core\Components\DirectionalLightComponent.h" />
     <ClInclude Include="Source\Core\Actors\PointLightActor.h" />
     <ClInclude Include="Source\Core\Components\PointLightComponent.h" />
     <ClInclude Include="Source\Core\Components\LightComponent.h" />

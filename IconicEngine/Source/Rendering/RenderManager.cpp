@@ -299,16 +299,22 @@ void RenderManager::BufferLightData()
 {
     LightBuffer->ClearBufferData();
     LightData.NumPointLights = 0;
+    LightData.NumDirectionalLights = 0;
 
     for (int i = 0; i < Lights.size(); ++i)
     {
-        LightComponent::Data* CurrLightData = Lights[i]->GetLightData();
-
-        if (PointLightComponent::Data* PointLightData = static_cast<PointLightComponent::Data*>(CurrLightData))
+		PointLightComponent* PointLight = dynamic_cast<PointLightComponent*>(Lights[i]);
+		DirectionalLightComponent* DirectionalLight = dynamic_cast<DirectionalLightComponent*>(Lights[i]);
+        if (PointLight)
         {
-            memcpy(&LightData.PointLights[i], PointLightData, sizeof(PointLightComponent::Data));
+            memcpy(&LightData.PointLights[i], PointLight->GetPointLightData(), sizeof(PointLightComponent::Data));
             LightData.NumPointLights++;
         }
+		else if (DirectionalLight)
+		{
+			memcpy(&LightData.DirectionalLights[i], DirectionalLight->GetDirectionalLightData(), sizeof(DirectionalLightComponent::Data));
+			LightData.NumDirectionalLights++;
+		}
     }
 
     LightBuffer->BufferData(&LightData, 0);

@@ -1,16 +1,57 @@
 #include "PointLightComponent.h"
 
-void PointLightComponent::SetLightColor(const glm::vec4& Color)
+void PointLightComponent::Init()
 {
-	static_cast<PointLightComponent::Data*>(GetLightData())->Color = Color;
+	LightComponent::Init();
+
+	LightData = new Data();
 }
 
-glm::vec4 PointLightComponent::GetLightColor() const
+void PointLightComponent::Update(const float DeltaTime)
 {
-	return static_cast<PointLightComponent::Data*>(GetLightData())->Color;
+	LightComponent::Update(DeltaTime);
+
+	LightData->Position = glm::vec4(GetPosition(), 1.0f);
 }
 
-LightComponent::Data* PointLightComponent::MakeLightData()
+void PointLightComponent::Shutdown()
 {
-	return new PointLightComponent::Data();
+	LightComponent::Shutdown();
+
+	delete LightData;
+}
+
+void PointLightComponent::SetIntensity(float Intensity)
+{
+	LightData->Intensity = Intensity;
+}
+
+float PointLightComponent::GetIntensity() const
+{
+	return LightData->Intensity;
+}
+
+void PointLightComponent::SetColor(const glm::vec4& Color)
+{
+	LightData->Color = Color;
+}
+
+glm::vec4 PointLightComponent::GetColor() const
+{
+	return LightData->Color;
+}
+
+void PointLightComponent::SetRadius(float Radius)
+{
+	LightData->Radius = Radius;
+}
+
+float PointLightComponent::GetRadius() const
+{
+	return LightData->Radius;
+}
+
+PointLightComponent::Data* PointLightComponent::GetPointLightData() const
+{
+	return LightData;
 }
