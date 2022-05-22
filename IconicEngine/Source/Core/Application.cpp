@@ -116,6 +116,10 @@ void Application::Update(float DeltaTime)
 	{
 		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::Composited);
 	}
+	if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_F8))
+	{
+		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::ShadowMap);
+	}
 
 	Angle += DeltaTime * 20.0f;
 	glm::quat rot = glm::angleAxis(glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));

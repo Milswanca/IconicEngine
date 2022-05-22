@@ -9,12 +9,15 @@
 #include "Texture.h"
 #include "UniformBufferObject.h"
 #include "StaticMesh.h"
+#include "Rendering/RenderTexture2D.h"
 
 UniformBufferObject* RenderManager::CameraBuffer = nullptr;
 RenderManager::CameraBufferData RenderManager::CameraData;
 
 UniformBufferObject* RenderManager::LightBuffer = nullptr;
 RenderManager::LightBufferData RenderManager::LightData;
+
+Shader* RenderManager::ShadowMapShader = nullptr;
 
 StaticMesh* RenderManager::QuadMesh = nullptr;
 
@@ -37,6 +40,11 @@ void RenderManager::PostInit()
         { 0, 1, 2, 2, 1, 3 }
     };
     QuadMesh = StaticMesh::Create(this, SMParams);
+
+    ShadowMapShader = CreateObject<Shader>(this);
+	ShadowMapShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GenerateShadowMapVS.shader");
+	ShadowMapShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GenerateShadowMapFS.shader");
+    ShadowMapShader->Compile();
 
     Shader* OutputTargetShader = CreateObject<Shader>(this);
 	OutputTargetShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\DrawFullScreenVS.shader");
@@ -170,8 +178,21 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
     return BoundBuffers[Index];
 }
 
+void RenderManager::GenerateShadowMap(LightComponent* Light)
+{
+    Light->GetShadowMap()->BindFramebuffer();
+    Light->GetShadowMap()->Clear(true);
+    RenderScene(ShadowMapShader, Light->GetLightProjectionView());
+    BindFramebuffer(nullptr);
+}
+
 void RenderManager::Render()
 {
+    for (size_t i = 0; i < Lights.size(); ++i)
+    {
+        GenerateShadowMap(Lights[i]);
+    }
+
     for(unsigned int i = 0; i < GBuffer::MAX_GBUFFER_PASSES; ++i)
     {
         GBuffer::GBufferPass* Pass = CurrentGBuffer->GetPassData(i);
@@ -183,11 +204,11 @@ void RenderManager::Render()
             switch(Pass->RenderType)
             {
             case GBuffer::GBufferRenderPassType::RenderScene:
-                RenderScene(Pass->RenderShader, MainCamera);
+                RenderScene(Pass->RenderShader, MainCamera->GetProjectionView());
                 break;
 
             case GBuffer::GBufferRenderPassType::RenderQuad:
-                RenderMesh(MainCamera, glm::identity<glm::mat4>(), Pass->RenderMaterial, QuadMesh);
+                RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), Pass->RenderMaterial, QuadMesh);
                 break;
             }
 
@@ -220,16 +241,19 @@ void RenderManager::Render()
 			case DrawOutputTarget::FinalColor:
 				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetFinalTexture());
 				break;
+            case DrawOutputTarget::ShadowMap:
+                OutputTargetMat->SetTexture("gTex_Output", dynamic_cast<RenderTexture2D*>(Lights[0]->GetShadowMap())->GetDepthAttachment());
+                break;
 			}
         }
 
-        RenderMesh(MainCamera, glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
+        RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
     }
 }
 
-void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
+void RenderManager::RenderMesh(const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
 {
-    BufferCameraData(Camera);
+    BufferCameraData(ProjectionView);
     BufferLightData();
 	CameraBuffer->Bind(0);
     LightBuffer->Bind(1);
@@ -254,14 +278,14 @@ void RenderManager::RenderMesh(CameraComponent* Camera, const glm::mat4& Model, 
 	}
 }
 
-void RenderManager::RenderScene(CameraComponent* Camera)
+void RenderManager::RenderScene(const glm::mat4& ProjectionView)
 {
-    RenderScene(nullptr, Camera);
+    RenderScene(nullptr, ProjectionView);
 }
 
-void RenderManager::RenderScene(Shader* Shad, CameraComponent* Camera)
+void RenderManager::RenderScene(Shader* Shad, const glm::mat4& ProjectionView)
 {
-	BufferCameraData(Camera);
+	BufferCameraData(ProjectionView);
 	BufferLightData();
 	CameraBuffer->Bind(0);
 	LightBuffer->Bind(1);
@@ -288,10 +312,10 @@ void RenderManager::SetMainCamera(CameraComponent* NewMainCamera)
     MainCamera = NewMainCamera;
 }
 
-void RenderManager::BufferCameraData(CameraComponent* Camera)
+void RenderManager::BufferCameraData(const glm::mat4& ProjectionView)
 {
-	CameraData.gEyePosition = Camera->GetPosition();
-	CameraData.gProjectionView = Camera->GetProjectionView();
+	CameraData.gEyePosition = ProjectionView[3];
+	CameraData.gProjectionView = ProjectionView;
 	CameraBuffer->BufferData(&CameraData, 0);
 }
 

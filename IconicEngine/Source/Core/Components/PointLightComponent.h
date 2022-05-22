@@ -1,6 +1,8 @@
 #pragma once
 #include "Core/Components/LightComponent.h"
 
+class RenderTexture2D;
+
 class PointLightComponent : public LightComponent
 {
 public:
@@ -25,12 +27,19 @@ public:
 	virtual void SetColor(const glm::vec4& Color) override;
 	virtual glm::vec4 GetColor() const;
 
+	virtual glm::mat4 GetLightProjection() const;
+	virtual glm::mat4 GetLightView() const;
+
+	virtual void GenerateShadowMap();
+	virtual RenderTexture* GetShadowMap() const;
+
 	void SetRadius(float Radius);
 	float GetRadius() const;
 
 	Data* GetPointLightData() const;
 
 private:
+	RenderTexture2D* ShadowMap;
 	Data* LightData;
 };
 

@@ -9,42 +9,42 @@
 
 void GBuffer::Init()
 {
-    Object::Init();
+	Object::Init();
 
-    for (unsigned int i = 0; i < MAX_GBUFFER_PASSES; ++i)
-    {
-        RenderPasses[i] = nullptr;
-    }
+	for (unsigned int i = 0; i < MAX_GBUFFER_PASSES; ++i)
+	{
+		RenderPasses[i] = nullptr;
+	}
 }
 
 void GBuffer::Shutdown()
 {
-    Object::Shutdown();
+	Object::Shutdown();
 
-    for(unsigned int i = 0; i < MAX_GBUFFER_PASSES; ++i)
-    {
-        RemovePass(i);
-    }
+	for (unsigned int i = 0; i < MAX_GBUFFER_PASSES; ++i)
+	{
+		RemovePass(i);
+	}
 }
 
 void GBuffer::AddPass(unsigned PassIndex, const GBufferPass& Pass)
 {
-    if(RenderPasses[PassIndex] != nullptr)
-        RemovePass(PassIndex);
+	if (RenderPasses[PassIndex] != nullptr)
+		RemovePass(PassIndex);
 
-    RenderPasses[PassIndex] = new GBufferPass();
-    memcpy(RenderPasses[PassIndex], &Pass, sizeof(GBufferPass));
+	RenderPasses[PassIndex] = new GBufferPass();
+	memcpy(RenderPasses[PassIndex], &Pass, sizeof(GBufferPass));
 }
 
 void GBuffer::RemovePass(unsigned PassIndex)
 {
-    delete RenderPasses[PassIndex];
-    RenderPasses[PassIndex] = nullptr;
+	delete RenderPasses[PassIndex];
+	RenderPasses[PassIndex] = nullptr;
 }
 
 GBuffer::GBufferPass* GBuffer::GetPassData(unsigned int PassIndex) const
 {
-    return RenderPasses[PassIndex];
+	return RenderPasses[PassIndex];
 }
 
 void GBuffer::PreRenderPass(unsigned Pass)
@@ -57,145 +57,143 @@ void GBuffer::PostRenderPass(unsigned Pass)
 
 void GBufferDeferred::Init()
 {
-    GBuffer::Init();
+	GBuffer::Init();
 
-    RenderTexture2D::CreateRenderTexture2DParams GBufferSceneTargetParams;
-    GBufferSceneTargetParams.Format = Texture::TextureFormats::RGB8;
-    GBufferSceneTargetParams.W = 1400;
-    GBufferSceneTargetParams.H = 800;
-    GBufferSceneTargetParams.AttachDepthBuffer = true;
-    GBufferSceneTarget = RenderTexture2D::Create(this, GBufferSceneTargetParams);
-    GBufferSceneTarget->AddTexture(1, Texture::TextureFormats::RGB8);
-    GBufferSceneTarget->AddTexture(2, Texture::TextureFormats::RGB32);
-    GBufferSceneTarget->AddTexture(3, Texture::TextureFormats::RGB32);
-    GBufferSceneTarget->AddTexture(4, Texture::TextureFormats::RGB32);
-    GBufferSceneTarget->UpdateResource();
+	RenderTexture2D::CreateRenderTexture2DParams GBufferSceneTargetParams;
+	GBufferSceneTargetParams.W = 1400;
+	GBufferSceneTargetParams.H = 800;
+	GBufferSceneTargetParams.NumColorAttachments = 5;
+	GBufferSceneTargetParams.ColorAttachments[0] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB8);
+	GBufferSceneTargetParams.ColorAttachments[1] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB8);
+	GBufferSceneTargetParams.ColorAttachments[2] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB32);
+	GBufferSceneTargetParams.ColorAttachments[3] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB32);
+	GBufferSceneTargetParams.ColorAttachments[4] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB32);
+	GBufferSceneTargetParams.DepthStencilRule = RenderTexture2D::AddDepthStencilRules::DepthOnly;
+	GBufferSceneTarget = RenderTexture2D::Create(this, GBufferSceneTargetParams);
 
 	RenderTexture2D::CreateRenderTexture2DParams GBufferCompositeTargetParams;
-	GBufferCompositeTargetParams.Format = Texture::TextureFormats::RGBA32;
 	GBufferCompositeTargetParams.W = 1400;
 	GBufferCompositeTargetParams.H = 800;
-	GBufferCompositeTargetParams.AttachDepthBuffer = false;
+	GBufferCompositeTargetParams.NumColorAttachments = 1;
+	GBufferCompositeTargetParams.ColorAttachments[0] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB32);
 	GBufferCompositeTarget = RenderTexture2D::Create(this, GBufferCompositeTargetParams);
-	GBufferCompositeTarget->UpdateResource();
 
 	RenderTexture2D::CreateRenderTexture2DParams GBufferPostProcessTargetParams;
-	GBufferPostProcessTargetParams.Format = Texture::TextureFormats::RGBA32;
 	GBufferPostProcessTargetParams.W = 1400;
 	GBufferPostProcessTargetParams.H = 800;
-	GBufferPostProcessTargetParams.AttachDepthBuffer = false;
+	GBufferPostProcessTargetParams.NumColorAttachments = 1;
+	GBufferPostProcessTargetParams.ColorAttachments[0] = RenderTexture2D::AddColorAttachmentParams(Texture::TextureFormats::RGB32);
 	GBufferPostProcessTarget = RenderTexture2D::Create(this, GBufferPostProcessTargetParams);
-    GBufferPostProcessTarget->UpdateResource();
 
-    GBufferSceneShader = CreateObject<Shader>(this);
-    GBufferSceneShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferSceneVS.shader");
-    GBufferSceneShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GBufferSceneFS.shader");
-    GBufferSceneShader->Compile();
+	GBufferSceneShader = CreateObject<Shader>(this);
+	GBufferSceneShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferSceneVS.shader");
+	GBufferSceneShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GBufferSceneFS.shader");
+	GBufferSceneShader->Compile();
 
-    GBufferCompositeShader = CreateObject<Shader>(this);
-    GBufferCompositeShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferCompositeVS.shader");
-    GBufferCompositeShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GBufferCompositeFS.shader");
-    GBufferCompositeShader->Compile();
+	GBufferCompositeShader = CreateObject<Shader>(this);
+	GBufferCompositeShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\GBufferCompositeVS.shader");
+	GBufferCompositeShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\GBufferCompositeFS.shader");
+	GBufferCompositeShader->Compile();
 
-    PostProcessShader = CreateObject<Shader>(this);
-    PostProcessShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\PostProcessVS.shader");
-    PostProcessShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\PostProcessFS.shader");
-    PostProcessShader->Compile();
+	PostProcessShader = CreateObject<Shader>(this);
+	PostProcessShader->SetShaderSource(ShaderTypes::Vertex, "Content\\Shaders\\PostProcessVS.shader");
+	PostProcessShader->SetShaderSource(ShaderTypes::Fragment, "Content\\Shaders\\PostProcessFS.shader");
+	PostProcessShader->Compile();
 
-    GBufferCompositeMaterial = CreateObject<Material>(this);
-    GBufferCompositeMaterial->SetShader(GBufferCompositeShader);
-    GBufferCompositeMaterial->SetTexture("gTex_Ambient", GBufferSceneTarget->GetTexture(0));
-    GBufferCompositeMaterial->SetTexture("gTex_Albedo", GBufferSceneTarget->GetTexture(1));
-    GBufferCompositeMaterial->SetTexture("gTex_Position", GBufferSceneTarget->GetTexture(2));
-    GBufferCompositeMaterial->SetTexture("gTex_Normal", GBufferSceneTarget->GetTexture(3));
-    GBufferCompositeMaterial->SetTexture("gTex_ShineMatID", GBufferSceneTarget->GetTexture(4));
+	GBufferCompositeMaterial = CreateObject<Material>(this);
+	GBufferCompositeMaterial->SetShader(GBufferCompositeShader);
+	GBufferCompositeMaterial->SetTexture("gTex_Ambient", GBufferSceneTarget->GetColorAttachment(0));
+	GBufferCompositeMaterial->SetTexture("gTex_Albedo", GBufferSceneTarget->GetColorAttachment(1));
+	GBufferCompositeMaterial->SetTexture("gTex_Position", GBufferSceneTarget->GetColorAttachment(2));
+	GBufferCompositeMaterial->SetTexture("gTex_Normal", GBufferSceneTarget->GetColorAttachment(3));
+	GBufferCompositeMaterial->SetTexture("gTex_ShineMatID", GBufferSceneTarget->GetColorAttachment(4));
 
-    PostProcessMaterial = CreateObject<Material>(this);
-    PostProcessMaterial->SetShader(PostProcessShader);
+	PostProcessMaterial = CreateObject<Material>(this);
+	PostProcessMaterial->SetShader(PostProcessShader);
 
-    PostProcessMaterial->SetTexture("gTex_Scene", GBufferCompositeTarget->GetTexture(0));
+	PostProcessMaterial->SetTexture("gTex_Scene", GBufferCompositeTarget->GetColorAttachment(0));
 
-    GBufferPass Pass0;
-    Pass0.RenderType = GBufferRenderPassType::RenderScene;
-    Pass0.RenderShader = GBufferSceneShader;
-    AddPass(0, Pass0);
+	GBufferPass Pass0;
+	Pass0.RenderType = GBufferRenderPassType::RenderScene;
+	Pass0.RenderShader = GBufferSceneShader;
+	AddPass(0, Pass0);
 
-    GBufferPass Pass1;
-    Pass1.RenderType = GBufferRenderPassType::RenderQuad;
-    Pass1.RenderMaterial = GBufferCompositeMaterial;
-    AddPass(1, Pass1);
+	GBufferPass Pass1;
+	Pass1.RenderType = GBufferRenderPassType::RenderQuad;
+	Pass1.RenderMaterial = GBufferCompositeMaterial;
+	AddPass(1, Pass1);
 
-    GBufferPass Pass2;
-    Pass2.RenderType = GBufferRenderPassType::RenderQuad;
-    Pass2.RenderMaterial = PostProcessMaterial;
-    AddPass(2, Pass2);
+	GBufferPass Pass2;
+	Pass2.RenderType = GBufferRenderPassType::RenderQuad;
+	Pass2.RenderMaterial = PostProcessMaterial;
+	AddPass(2, Pass2);
 }
 
 void GBufferDeferred::Shutdown()
 {
-    GBuffer::Shutdown();
+	GBuffer::Shutdown();
 }
 
 void GBufferDeferred::PreRenderPass(unsigned Pass)
 {
-    GBuffer::PreRenderPass(Pass);
+	GBuffer::PreRenderPass(Pass);
 
-    switch(Pass)
-    {
-    case 0:
-        GBufferSceneTarget->BindFramebuffer();
-        GBufferSceneTarget->Clear(true);
-        break;
+	switch (Pass)
+	{
+	case 0:
+		GBufferSceneTarget->BindFramebuffer();
+		GBufferSceneTarget->Clear(true);
+		break;
 
-    case 1:
-        GBufferCompositeTarget->BindFramebuffer();
-        GBufferCompositeTarget->Clear(true);
-        break;
+	case 1:
+		GBufferCompositeTarget->BindFramebuffer();
+		GBufferCompositeTarget->Clear(true);
+		break;
 
-    case 2:
-        GBufferPostProcessTarget->BindFramebuffer();
-        GBufferPostProcessTarget->Clear(true);
-    }
+	case 2:
+		GBufferPostProcessTarget->BindFramebuffer();
+		GBufferPostProcessTarget->Clear(true);
+	}
 }
 
 void GBufferDeferred::PostRenderPass(unsigned Pass)
 {
-    GBuffer::PostRenderPass(Pass);
+	GBuffer::PostRenderPass(Pass);
 
 	GetRenderManager()->BindFramebuffer(nullptr);
 }
 
 Texture2D* GBufferDeferred::GetPositionTexture() const
 {
-    return GBufferSceneTarget->GetTexture(2);
+	return GBufferSceneTarget->GetColorAttachment(2);
 }
 
 Texture2D* GBufferDeferred::GetNormalTexture() const
 {
-	return GBufferSceneTarget->GetTexture(3);
+	return GBufferSceneTarget->GetColorAttachment(3);
 }
 
 Texture2D* GBufferDeferred::GetAlbedoTexture() const
 {
-	return GBufferSceneTarget->GetTexture(1);
+	return GBufferSceneTarget->GetColorAttachment(1);
 }
 
 Texture2D* GBufferDeferred::GetSpecularTexture() const
 {
-	return GBufferSceneTarget->GetTexture(4);
+	return GBufferSceneTarget->GetColorAttachment(4);
 }
 
 Texture2D* GBufferDeferred::GetAmbientTexture() const
 {
-	return GBufferSceneTarget->GetTexture(0);
+	return GBufferSceneTarget->GetColorAttachment(0);
 }
 
 Texture2D* GBufferDeferred::GetCompositedTexture() const
 {
-	return GBufferCompositeTarget->GetTexture(0);
+	return GBufferCompositeTarget->GetColorAttachment(0);
 }
 
 Texture2D* GBufferDeferred::GetFinalTexture() const
 {
-	return GBufferPostProcessTarget->GetTexture(0);
+	return GBufferPostProcessTarget->GetColorAttachment(0);
 }

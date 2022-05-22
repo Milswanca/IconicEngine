@@ -6,6 +6,15 @@ class Texture;
 class RenderTexture : public Texture
 {
 public:
+	enum class RenderTextureBindings
+	{
+        ColorAttachment,
+        DepthAttachment,
+        StencilAttachment,
+        DepthAndStencilAttachment,
+	};
+
+public:
     IMPLEMENT_CONSTRUCTOR(RenderTexture, Texture);
 
     virtual void Init() override;

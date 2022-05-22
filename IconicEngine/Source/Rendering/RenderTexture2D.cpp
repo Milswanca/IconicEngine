@@ -7,13 +7,25 @@ RenderTexture2D* RenderTexture2D::Create(Object* NewOuter, const CreateRenderTex
 	RenderTexture2D* Tex = Engine::Get()->CreateObject<RenderTexture2D>(NewOuter);
 	Tex->Data->Width = Params.W;
 	Tex->Data->Height = Params.H;
-	Tex->Data->TextureFormat = Params.Format;
-	Tex->bGenerateMips = Params.GenerateMips;
-	Tex->AddTexture(0, Params.Format);
 
-	if (Params.AttachDepthBuffer)
+	for (unsigned int i = 0; i < Params.NumColorAttachments; ++i)
 	{
-		Tex->AddDepthBuffer();
+		Tex->AddColorAttachment(i, Params.ColorAttachments[i].Format);
+	}
+
+	switch (Params.DepthStencilRule)
+	{
+	case AddDepthStencilRules::DepthOnly:
+		Tex->AddDepthAttachment();
+		break;
+
+	case AddDepthStencilRules::StencilOnly:
+		Tex->AddStencilAttachment();
+		break;
+
+	case AddDepthStencilRules::DepthAndStencil:
+		Tex->AddDepthAndStencilAttachment();
+		break;
 	}
 
 	Tex->UpdateResource();
@@ -30,14 +42,10 @@ void RenderTexture2D::Init()
 void RenderTexture2D::Shutdown()
 {
 	RenderTexture::Shutdown();
-
 	delete Data;
-
-	if (RBO)
-		glDeleteRenderbuffers(1, &RBO);
 }
 
-Texture2D* RenderTexture2D::AddTexture(unsigned int Index, TextureFormats Format, bool bUpdateResource)
+Texture2D* RenderTexture2D::AddColorAttachment(unsigned int Index, TextureFormats Format, bool bUpdateResource)
 {
 	Texture2D::CreateTexture2DParams Params;
 	Params.W = Data->Width;
@@ -46,13 +54,13 @@ Texture2D* RenderTexture2D::AddTexture(unsigned int Index, TextureFormats Format
 	Params.Format = Format;
 	Params.Pixels = nullptr;
 
-	if (Textures[Index] != nullptr)
+	if (ColorAttachments[Index] != nullptr)
 	{
-		Textures[Index]->Destroy();
+		GetColorAttachment(Index)->Destroy();
 	}
 
 	Texture2D* NewTex = Texture2D::Create(this, Params);
-	Textures[Index] = NewTex;
+	ColorAttachments[Index] = NewTex;
 
 	if (bUpdateResource)
 	{
@@ -62,15 +70,99 @@ Texture2D* RenderTexture2D::AddTexture(unsigned int Index, TextureFormats Format
 	return NewTex;
 }
 
-void RenderTexture2D::AddDepthBuffer()
+Texture2D* RenderTexture2D::AddDepthAttachment(bool bUpdateResource)
 {
-	if (RBO)
-		return;
+	Texture2D::CreateTexture2DParams Params;
+	Params.W = Data->Width;
+	Params.H = Data->Height;
+	Params.GenerateMips = false;
+	Params.Format = TextureFormats::Depth;
+	Params.Pixels = nullptr;
 
-	glGenRenderbuffers(1, &RBO);
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
-	glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, Data->Width, Data->Height);
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
+	if (DepthAttachment != nullptr)
+	{
+		GetDepthAttachment()->Destroy();
+	}
+
+	Texture2D* NewTex = Texture2D::Create(this, Params);
+	DepthAttachment = NewTex;
+
+	if (bUpdateResource)
+	{
+		UpdateResource();
+	}
+
+	return NewTex;
+}
+
+Texture2D* RenderTexture2D::AddStencilAttachment(bool bUpdateResource)
+{
+	Texture2D::CreateTexture2DParams Params;
+	Params.W = Data->Width;
+	Params.H = Data->Height;
+	Params.GenerateMips = false;
+	Params.Format = TextureFormats::Depth;
+	Params.Pixels = nullptr;
+
+	if (StencilAttachment != nullptr)
+	{
+		GetStencilAttachment()->Destroy();
+	}
+
+	Texture2D* NewTex = Texture2D::Create(this, Params);
+	StencilAttachment = NewTex;
+
+	if (bUpdateResource)
+	{
+		UpdateResource();
+	}
+
+	return NewTex;
+}
+
+Texture2D* RenderTexture2D::AddDepthAndStencilAttachment(bool bUpdateResource)
+{
+	Texture2D::CreateTexture2DParams Params;
+	Params.W = Data->Width;
+	Params.H = Data->Height;
+	Params.GenerateMips = false;
+	Params.Format = TextureFormats::Depth;
+	Params.Pixels = nullptr;
+
+	if (StencilAttachment != nullptr)
+	{
+		GetStencilAttachment()->Destroy();
+	}
+	if (DepthAttachment != nullptr)
+	{
+		GetDepthAttachment()->Destroy();
+	}
+
+	Texture2D* NewTex = Texture2D::Create(this, Params);
+	StencilAttachment = NewTex;
+	DepthAttachment = NewTex;
+
+	if (bUpdateResource)
+	{
+		UpdateResource();
+	}
+
+	return NewTex;
+}
+
+Texture2D* RenderTexture2D::GetColorAttachment(unsigned int Index) const
+{
+	return ColorAttachments[Index];
+}
+
+Texture2D* RenderTexture2D::GetDepthAttachment() const
+{
+	return DepthAttachment;
+}
+
+Texture2D* RenderTexture2D::GetStencilAttachment() const
+{
+	return StencilAttachment;
 }
 
 void RenderTexture2D::UpdateResource()
@@ -85,16 +177,19 @@ void RenderTexture2D::UpdateResource()
 	unsigned int NumBoundBuffers = 0;
 	for (unsigned int i = 0; i < 32; ++i)
 	{
-		if (!Textures[i])
+		if (!ColorAttachments[i])
 			continue;
 
-		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, Textures[i]->GetTextureID(), 0);
+		glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, ColorAttachments[i]->GetTextureID(), 0);
 		BoundBuffers[NumBoundBuffers] = GL_COLOR_ATTACHMENT0 + i;
 		NumBoundBuffers++;
 	}
 
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, RBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthAttachment != nullptr ? DepthAttachment->GetTextureID() : 0, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, StencilAttachment != nullptr ? StencilAttachment->GetTextureID() : 0, 0);
 	glDrawBuffers(NumBoundBuffers, BoundBuffers);
+
+	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 
 	GetRenderManager()->BindFramebuffer(LastBound);
 }
@@ -111,27 +206,17 @@ void RenderTexture2D::Clear(bool ClearDepth)
 	GetRenderManager()->BindFramebuffer(LastBound);
 }
 
-unsigned RenderTexture2D::GetRBO() const
-{
-	return RBO;
-}
-
 GLuint RenderTexture2D::GetTextureID() const
 {
-	return Textures[0]->GetTextureID();
+	return ColorAttachments[0] != nullptr ? ColorAttachments[0]->GetTextureID() : 0;
 }
 
 void RenderTexture2D::FramebufferBound()
 {
-	glBindRenderbuffer(GL_RENDERBUFFER, RBO);
+
 }
 
 void RenderTexture2D::FramebufferUnbound()
 {
-	glBindRenderbuffer(GL_RENDERBUFFER, 0);
-}
 
-Texture2D* RenderTexture2D::GetTexture(unsigned int Index) const
-{
-	return Textures[Index];
 }

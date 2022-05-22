@@ -272,5 +272,7 @@
     <None Include="Content\Shaders\PostProcessVS.shader" />
     <None Include="Content\Shaders\DrawFullScreenVS.shader" />
     <None Include="Content\Shaders\DrawFullScreenFS.shader" />
+    <None Include="Content\Shaders\GenerateShadowMapVS.shader" />
+    <None Include="Content\Shaders\GenerateShadowMapFS.shader" />
   </ItemGroup>
 </Project>

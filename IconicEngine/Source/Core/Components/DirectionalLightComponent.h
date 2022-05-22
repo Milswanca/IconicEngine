@@ -1,6 +1,9 @@
 #pragma once
 #include "Core/Components/LightComponent.h"
 #include "glm/vec4.hpp"
+#include "glm/matrix.hpp"
+
+class RenderTexture2D;
 
 class DirectionalLightComponent : public LightComponent
 {
@@ -26,9 +29,16 @@ public:
 	virtual void SetColor(const glm::vec4& Color) override;
 	virtual glm::vec4 GetColor() const override;
 
+	virtual glm::mat4 GetLightView() const override;
+	virtual glm::mat4 GetLightProjection() const override;
+
+	virtual void GenerateShadowMap() override;
+	virtual RenderTexture* GetShadowMap() const override;
+
 	Data* GetDirectionalLightData() const;
 
 protected:
+	RenderTexture2D* ShadowMap;
 	Data* LightData;
 };
 

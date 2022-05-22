@@ -16,7 +16,8 @@ std::map<Texture::TextureFormats, Texture::TexFormatToGLType> Texture::TexFormat
     {Texture::TextureFormats::RG32, Texture::TexFormatToGLType(GL_RG32F, GL_RG, GL_FLOAT, sizeof(float) * 2)},   
     {Texture::TextureFormats::R8, Texture::TexFormatToGLType(GL_R8, GL_RED, GL_UNSIGNED_BYTE, sizeof(char) * 1)},   
     {Texture::TextureFormats::R16, Texture::TexFormatToGLType(GL_R16F, GL_RED, GL_HALF_FLOAT, sizeof(short) * 1)},   
-    {Texture::TextureFormats::R32, Texture::TexFormatToGLType(GL_R32F, GL_RED, GL_FLOAT, sizeof(float) * 1)},   
+	{Texture::TextureFormats::R32, Texture::TexFormatToGLType(GL_R32F, GL_RED, GL_FLOAT, sizeof(float) * 1)},
+	{Texture::TextureFormats::Depth, Texture::TexFormatToGLType(GL_DEPTH_COMPONENT, GL_DEPTH_COMPONENT, GL_FLOAT, sizeof(float) * 1)},
 };
 
 void Texture::Bind(unsigned int Index)

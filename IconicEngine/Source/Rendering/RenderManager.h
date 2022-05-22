@@ -39,7 +39,8 @@ public:
         Normal,
         Ambient,
         Spec,
-        Composited
+        Composited,
+        ShadowMap
     };
 
     struct CameraBufferData
@@ -66,6 +67,8 @@ public:
     static UniformBufferObject* LightBuffer;
     static LightBufferData LightData;
 
+    static Shader* ShadowMapShader;
+
 public:
     IMPLEMENT_CONSTRUCTOR(RenderManager, Object);
 
@@ -89,11 +92,13 @@ public:
     RenderTexture* GetFramebuffer() const;
     UniformBufferObject* GetUniformBuffer(unsigned int Index) const;
 
-    void Render();
-    void RenderMesh(CameraComponent* Camera, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
+    void GenerateShadowMap(LightComponent* Light);
 
-    void RenderScene(CameraComponent* Camera);
-    void RenderScene(Shader* Shad, CameraComponent* Camera);
+    void Render();
+    void RenderMesh(const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
+
+    void RenderScene(const glm::mat4& ProjectionView);
+    void RenderScene(Shader* Shad, const glm::mat4& ProjectionView);
 
     void RegisterDrawable(IDrawable* Drawable);
     void DeregisterDrawable(IDrawable* Drawable);
@@ -101,7 +106,7 @@ public:
     void SetMainCamera(CameraComponent* NewMainCamera);
 
 private:
-    void BufferCameraData(CameraComponent* Camera);
+    void BufferCameraData(const glm::mat4& ProjectionView);
     void BufferLightData();
 
 private:

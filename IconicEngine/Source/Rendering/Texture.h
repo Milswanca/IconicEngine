@@ -20,6 +20,7 @@ public:
         RG32,
         RGB32,
         RGBA32,
+        Depth
     };
 
     struct TexFormatToGLType

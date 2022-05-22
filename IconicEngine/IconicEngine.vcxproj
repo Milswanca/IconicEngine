@@ -113,6 +113,8 @@
     <None Include="Content\Shaders\GBufferPassVS.shader" />
     <None Include="Content\Shaders\GBufferSceneFS.shader" />
     <None Include="Content\Shaders\GBufferSceneVS.shader" />
+    <None Include="Content\Shaders\GenerateShadowMapFS.shader" />
+    <None Include="Content\Shaders\GenerateShadowMapVS.shader" />
     <None Include="Content\Shaders\PostProcessFS.shader" />
     <None Include="Content\Shaders\PostProcessVS.shader" />
     <None Include="Content\Shaders\TessControl.shader" />

@@ -1,26 +1,49 @@
 #pragma once
 #include "RenderTexture.h"
+#include <unordered_map>
 
 class Texture;
 
 class RenderTexture2D : public RenderTexture
 {
 public:
+	struct AddColorAttachmentParams
+	{
+		TextureFormats Format;
+
+		AddColorAttachmentParams()
+		{
+
+		}
+
+		AddColorAttachmentParams(TextureFormats InFormat)
+		{
+			Format = InFormat;
+		}
+	};
+
+	enum class AddDepthStencilRules
+	{
+		None,
+		DepthOnly,
+		StencilOnly,
+		DepthAndStencil
+	};
+
 	struct RenderTexture2DData
 	{
 		unsigned int Width;
 		unsigned int Height;
-		TextureFormats TextureFormat;
 	};
 
 	struct CreateRenderTexture2DParams
 	{
-		unsigned int W;
-		unsigned int H;
-		TextureFormats Format;
-		unsigned char* Pixels;
-		bool GenerateMips;
-		bool AttachDepthBuffer;
+	public:
+		unsigned int W = 0;
+		unsigned int H = 0;
+		unsigned int NumColorAttachments = 0;
+		AddColorAttachmentParams ColorAttachments[32];
+		AddDepthStencilRules DepthStencilRule;
 	};
 
 public:
@@ -31,14 +54,18 @@ public:
 	virtual void Init() override;
 	virtual void Shutdown() override;
 
-	Texture2D* AddTexture(unsigned int Index, TextureFormats Format, bool bUpdateResource = false);
-	void AddDepthBuffer();
-	Texture2D* GetTexture(unsigned int Index) const;
+	Texture2D* AddColorAttachment(unsigned int Index, TextureFormats Format, bool bUpdateResource = false);
+	Texture2D* AddDepthAttachment(bool bUpdateResource = false);
+	Texture2D* AddStencilAttachment(bool bUpdateResource = false);
+	Texture2D* AddDepthAndStencilAttachment(bool bUpdateResource = false);
+
+	Texture2D* GetColorAttachment(unsigned int Index) const;
+	Texture2D* GetDepthAttachment() const;
+	Texture2D* GetStencilAttachment() const;
+
 	virtual void UpdateResource() override;
 
 	void Clear(bool CreateDepth);
-	unsigned int GetRBO() const;
-
 	virtual GLuint GetTextureID() const override;
 
 protected:
@@ -46,9 +73,10 @@ protected:
 	virtual void FramebufferUnbound() override;
 
 private:
-	GLuint RBO;
 	RenderTexture2DData* Data;
-	Texture2D* Textures[32];
+	Texture2D* ColorAttachments[32];
+	Texture2D* DepthAttachment;
+	Texture2D* StencilAttachment;
 
 	friend class RenderManager;
 };
