@@ -23,7 +23,7 @@ class RenderManager : public Object
 {
 public:
 	static const unsigned int MaxDirectionalLights = 8;
-	static const unsigned int MaxPointLights = 100;
+	static const unsigned int MaxPointLights = 500;
 
     enum class DrawMode
     {

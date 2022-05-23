@@ -40,7 +40,7 @@ layout(std140) uniform Camera
     float gFar;
 };
 
-#define MAX_POINT_LIGHTS 100
+#define MAX_POINT_LIGHTS 500
 #define MAX_DIRECTIONAL_LIGHTS 8
 layout(std140) uniform Lights
 {

@@ -14,6 +14,14 @@ in VS_OUT
     mat3 TangentToWorldSpace;
 } fs_in;
 
+layout(std140) uniform Camera
+{
+    mat4 gViewProjection;
+    vec4 gEyePosition;
+    float gNear;
+    float gFar;
+};
+
 // Diffuse
 uniform vec3 gDiffuseColor;
 uniform sampler2D gTex_Diffuse;
@@ -43,6 +51,12 @@ vec3 select(vec3 a, vec3 b, float chooseB)
     return ((1.0f - chooseB) * a) + (chooseB * b);
 }
 
+float LinearizeDepth(float depth)
+{
+    float z = depth * 2.0 - 1.0; // back to NDC 
+    return ((2.0 * gNear * gFar) / (gFar + gNear - z * (gFar - gNear))) / gFar;
+}
+
 void main()
 {
     // Ambient Light
@@ -61,4 +75,6 @@ void main()
 
     // Normals
     gNormal = select(fs_in.Normal, fs_in.TangentToWorldSpace * normalize(texture(gTex_Normals, fs_in.UV.xy).xyz * 2.0 - 1.0), gTex_Normals_Power);
+
+    gl_FragDepth = LinearizeDepth(gl_FragCoord.z);
 }

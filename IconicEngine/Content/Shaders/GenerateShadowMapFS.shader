@@ -11,7 +11,7 @@ layout(std140) uniform Camera
 float LinearizeDepth(float depth)
 {
     float z = depth * 2.0 - 1.0; // back to NDC 
-    return (2.0 * gNear * gFar) / (gFar + gNear - z * (gFar - gNear));
+    return ((2.0 * gNear * gFar) / (gFar + gNear - z * (gFar - gNear))) / gFar;
 }
 
 void main()

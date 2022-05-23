@@ -180,11 +180,11 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
 
 void RenderManager::GenerateShadowMap(LightComponent* Light)
 {
-    Light->GetShadowMap()->BindFramebuffer();
-    glEnable(GL_DEPTH);
-    Light->GetShadowMap()->Clear(true);
-    RenderScene(ShadowMapShader, MainCamera->GetProjectionView());
-    BindFramebuffer(nullptr);
+    //Light->GetShadowMap()->BindFramebuffer();
+    //glEnable(GL_DEPTH);
+    //Light->GetShadowMap()->Clear(true);
+    //RenderScene(ShadowMapShader, MainCamera->GetProjectionView());
+    //BindFramebuffer(nullptr);
 }
 
 void RenderManager::Render()

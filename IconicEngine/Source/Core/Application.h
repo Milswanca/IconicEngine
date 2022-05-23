@@ -25,6 +25,6 @@ public:
     FlyCamera* FlyCam;
     float Angle = 0.0f;
 
-    unsigned int NumLights = 1;
+    unsigned int NumLights = 500;
     StaticMesh* SphereMesh;
 };

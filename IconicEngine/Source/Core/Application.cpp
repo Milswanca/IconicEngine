@@ -47,10 +47,10 @@ void Application::Init()
     FlyCam->SetPosition(-FlyCam->GetForward() * 20.0f);
 	GetRenderManager()->SetMainCamera(FlyCam->GetCameraComponent());
 
-	DirectionalLightActor* DirectionalLight = Engine::Get()->GetActiveWorld()->SpawnActor<DirectionalLightActor>();
-	glm::quat Rot = glm::quat(glm::vec3(0.0f, glm::radians(45.0f), glm::radians(45.0f)));
-	DirectionalLight->SetLocalRotation(Rot);
-	DirectionalLight->GetDirectionalLightComponent()->SetIntensity(2.0f);
+	//DirectionalLightActor* DirectionalLight = Engine::Get()->GetActiveWorld()->SpawnActor<DirectionalLightActor>();
+	//glm::quat Rot = glm::quat(glm::vec3(0.0f, glm::radians(45.0f), glm::radians(45.0f)));
+	//DirectionalLight->SetLocalRotation(Rot);
+	//DirectionalLight->GetDirectionalLightComponent()->SetIntensity(0.2f);
 
 	for (unsigned int i = 0; i < NumLights; ++i)
 	{
@@ -73,6 +73,7 @@ void Application::Init()
 		PointLightActor* Light = Engine::Get()->GetActiveWorld()->SpawnActor<PointLightActor>();
 		Light->GetRootComponent()->AttachTo(RootActor->GetRootComponent());
 		Light->GetPointLightComponent()->SetColor(glm::vec4(r, g, b, 1.0f));
+		Light->GetPointLightComponent()->SetIntensity(2.0f);
 		Light->SetPosition(glm::vec3(Position));
 
 		StaticMeshComponent* Comp = Light->AddComponent<StaticMeshComponent>();
