@@ -85,6 +85,7 @@ int Engine::Init()
 	glEnable(GL_MULTISAMPLE);
 	glfwWindowHint(GLFW_SAMPLES, 4);
 
+
     _World = CreateObject<World>(nullptr);
     _AssetManager = CreateObject<AssetManager>(nullptr);
     _RenderManager = CreateObject<RenderManager>(nullptr);

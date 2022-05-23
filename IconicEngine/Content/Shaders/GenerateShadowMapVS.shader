@@ -6,7 +6,9 @@ uniform mat4 gModel;
 layout(std140) uniform Camera
 {
     mat4 gViewProjection;
-    vec3 gEyePosition;
+    vec4 gEyePosition;
+    float gNear;
+    float gFar;
 };
 
 void main()

@@ -181,8 +181,9 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
 void RenderManager::GenerateShadowMap(LightComponent* Light)
 {
     Light->GetShadowMap()->BindFramebuffer();
+    glEnable(GL_DEPTH);
     Light->GetShadowMap()->Clear(true);
-    RenderScene(ShadowMapShader, Light->GetLightProjectionView());
+    RenderScene(ShadowMapShader, MainCamera->GetProjectionView());
     BindFramebuffer(nullptr);
 }
 
@@ -214,41 +215,41 @@ void RenderManager::Render()
 
             CurrentGBuffer->PostRenderPass(i);
         }
-
-        if (CurrentDrawMode == DrawMode::Deferred)
-        {
-            GBufferDeferred* DeferredBuffer = static_cast<GBufferDeferred*>(CurrentGBuffer);
-			switch (OutputTarget)
-			{
-			case DrawOutputTarget::Albedo:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAlbedoTexture());
-				break;
-			case DrawOutputTarget::Ambient:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAmbientTexture());
-				break;
-			case DrawOutputTarget::Position:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetPositionTexture());
-				break;
-			case DrawOutputTarget::Normal:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetNormalTexture());
-				break;
-			case DrawOutputTarget::Spec:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetSpecularTexture());
-				break;
-			case DrawOutputTarget::Composited:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetCompositedTexture());
-				break;
-			case DrawOutputTarget::FinalColor:
-				OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetFinalTexture());
-				break;
-            case DrawOutputTarget::ShadowMap:
-                OutputTargetMat->SetTexture("gTex_Output", dynamic_cast<RenderTexture2D*>(Lights[0]->GetShadowMap())->GetDepthAttachment());
-                break;
-			}
-        }
-
-        RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
     }
+
+	if (CurrentDrawMode == DrawMode::Deferred)
+	{
+		GBufferDeferred* DeferredBuffer = static_cast<GBufferDeferred*>(CurrentGBuffer);
+		switch (OutputTarget)
+		{
+		case DrawOutputTarget::Albedo:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAlbedoTexture());
+			break;
+		case DrawOutputTarget::Ambient:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetAmbientTexture());
+			break;
+		case DrawOutputTarget::Position:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetPositionTexture());
+			break;
+		case DrawOutputTarget::Normal:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetNormalTexture());
+			break;
+		case DrawOutputTarget::Spec:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetSpecularTexture());
+			break;
+		case DrawOutputTarget::Composited:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetCompositedTexture());
+			break;
+		case DrawOutputTarget::FinalColor:
+			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetFinalTexture());
+			break;
+		case DrawOutputTarget::ShadowMap:
+			OutputTargetMat->SetTexture("gTex_Output", dynamic_cast<RenderTexture2D*>(Lights[0]->GetShadowMap())->GetDepthAttachment());
+			break;
+		}
+	}
+
+	RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
 }
 
 void RenderManager::RenderMesh(const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)

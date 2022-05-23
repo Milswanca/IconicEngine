@@ -18,7 +18,9 @@ out VS_OUT
 layout(std140) uniform Camera
 {
     mat4 gViewProjection;
-    vec3 gEyePosition;
+    vec4 gEyePosition;
+    float gNear;
+    float gFar;
 };
 
 uniform vec3 gLightPosition;

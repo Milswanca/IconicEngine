@@ -46,8 +46,9 @@ public:
     struct CameraBufferData
     {
         glm::mat4 gProjectionView;
-        glm::vec3 gEyePosition;
-        float Padding;
+        glm::vec4 gEyePosition;
+        float gNear = 0.3f;
+        float gFar = 10000.0f;
     };
 
     struct LightBufferData

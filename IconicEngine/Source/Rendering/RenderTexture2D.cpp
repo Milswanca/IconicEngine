@@ -187,7 +187,15 @@ void RenderTexture2D::UpdateResource()
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, DepthAttachment != nullptr ? DepthAttachment->GetTextureID() : 0, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, StencilAttachment != nullptr ? StencilAttachment->GetTextureID() : 0, 0);
-	glDrawBuffers(NumBoundBuffers, BoundBuffers);
+
+	if (NumBoundBuffers > 0)
+	{
+		glDrawBuffers(NumBoundBuffers, BoundBuffers);
+	}
+	else
+	{
+		glDrawBuffer(GL_NONE);
+	}
 
 	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
 

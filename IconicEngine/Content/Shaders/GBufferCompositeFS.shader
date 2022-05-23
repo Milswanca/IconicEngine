@@ -35,8 +35,9 @@ struct DirectionalLight
 layout(std140) uniform Camera
 {
     mat4 gViewProjection;
-    vec3 gEyePosition;
-    float Padding;
+    vec4 gEyePosition;
+    float gNear;
+    float gFar;
 };
 
 #define MAX_POINT_LIGHTS 100
@@ -73,7 +74,7 @@ vec3 ProcessUnlit(PointLight _light, FragmentData _fragment, vec3 _result)
 
 vec3 ProcessPhong(PointLight _light, FragmentData _fragment, vec3 _result)
 {
-    vec3 viewDir = normalize(gEyePosition - _fragment.Position);
+    vec3 viewDir = normalize(gEyePosition.xyz - _fragment.Position);
     vec3 lightDir = normalize(_light.Position.xyz - _fragment.Position);
 
     // diffuse shading
@@ -107,7 +108,7 @@ vec3 ProcessUnlit(DirectionalLight _light, FragmentData _fragment, vec3 _result)
 
 vec3 ProcessPhong(DirectionalLight _light, FragmentData _fragment, vec3 _result)
 {
-    vec3 viewDir = normalize(gEyePosition - _fragment.Position);
+    vec3 viewDir = normalize(gEyePosition.xyz - _fragment.Position);
     vec3 lightDir = _light.Direction.xyz;
 
     // diffuse shading
