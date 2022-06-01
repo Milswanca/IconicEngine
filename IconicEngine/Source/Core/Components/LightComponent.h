@@ -4,6 +4,7 @@
 #include "glm/matrix.hpp"
 
 class RenderTexture;
+class Texture;
 
 class LightComponent : public Component
 {
@@ -25,7 +26,8 @@ public:
 	virtual glm::mat4 GetLightView() const = 0;
 
 	virtual void GenerateShadowMap() = 0;
-	virtual RenderTexture* GetShadowMap() const = 0;
+	virtual Texture* GetShadowMap() const = 0;
+	virtual RenderTexture* GetShadowFramebuffer() const = 0;
 
 private:
 	glm::mat4 LightProjectionView;

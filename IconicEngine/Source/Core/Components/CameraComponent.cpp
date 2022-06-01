@@ -7,8 +7,8 @@ void CameraComponent::Init()
 {
     Component::Init();
 
-    Near = 0.3f;
-    Far = 10000.0f;
+    Near = 0.03f;
+    Far = 10.0f;
     FOV = 45.0f;
     Aspect = 600.0f / 400.0f;
     RefreshProjectionView();

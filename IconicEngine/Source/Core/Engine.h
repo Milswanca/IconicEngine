@@ -44,7 +44,7 @@ public:
 	{
 		unsigned short ObjectID = ObjectIDs->Add();
 		
-		T* Object = new T(Outer == nullptr ? Outer : _World);
+		T* Object = new T(Outer != nullptr ? Outer : _World);
 		Object->UniqueID = ObjectID;
 		ObjectTable->Add(Object);
 		Object->Init();

@@ -47,8 +47,8 @@ public:
     {
         glm::mat4 gProjectionView;
         glm::vec4 gEyePosition;
-        float gNear = 0.3f;
-        float gFar = 10000.0f;
+        float gNear = 0.03f;
+        float gFar = 20.0f;
     };
 
     struct LightBufferData
@@ -94,12 +94,14 @@ public:
     UniformBufferObject* GetUniformBuffer(unsigned int Index) const;
 
     void GenerateShadowMap(LightComponent* Light);
+    void SetShadowCasterTEMP(LightComponent* Light);
+    LightComponent* GetShadowCasterTEMP() const;
 
     void Render();
-    void RenderMesh(const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
+    void RenderMesh(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh);
 
-    void RenderScene(const glm::mat4& ProjectionView);
-    void RenderScene(Shader* Shad, const glm::mat4& ProjectionView);
+    void RenderScene(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView);
+    void RenderScene(Shader* Shad, const glm::vec3& ViewPosition, const glm::mat4& ProjectionView);
 
     void RegisterDrawable(IDrawable* Drawable);
     void DeregisterDrawable(IDrawable* Drawable);
@@ -107,7 +109,7 @@ public:
     void SetMainCamera(CameraComponent* NewMainCamera);
 
 private:
-    void BufferCameraData(const glm::mat4& ProjectionView);
+    void BufferCameraData(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView);
     void BufferLightData();
 
 private:
@@ -117,6 +119,7 @@ private:
     UniformBufferObject* BoundBuffers[32];
     RenderTexture* BoundFramebuffer;
     CameraComponent* MainCamera;
+    LightComponent* ShadowCaster;
 
     Material* OutputTargetMat;
     DrawOutputTarget OutputTarget;

@@ -64,7 +64,12 @@ void PointLightComponent::GenerateShadowMap()
 
 }
 
-RenderTexture* PointLightComponent::GetShadowMap() const
+Texture* PointLightComponent::GetShadowMap() const
+{
+	return ShadowMap->GetDepthAttachment();
+}
+
+RenderTexture* PointLightComponent::GetShadowFramebuffer() const
 {
 	return ShadowMap;
 }

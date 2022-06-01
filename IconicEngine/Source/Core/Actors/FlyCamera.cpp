@@ -23,7 +23,7 @@ void FlyCamera::Update(const float DeltaTime)
 {
     Actor::Update(DeltaTime);
 
-    glm::vec3 Position = GetPosition();
+    glm::vec3 Position = GetLocalPosition();
     glm::quat Rotation = GetRotation();
     if (glfwGetKey(Engine::Get()->GetWindow(), GLFW_KEY_W) == GLFW_PRESS)
     {
@@ -58,7 +58,7 @@ void FlyCamera::Update(const float DeltaTime)
         Rotation = glm::angleAxis(-glm::radians(TurnSpeed * DeltaTime), GetUp()) * Rotation;
     }
 
-    SetPosition(Position);
+    SetLocalPosition(Position);
     SetLocalRotation(Rotation);
 }
 

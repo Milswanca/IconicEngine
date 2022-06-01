@@ -7,6 +7,7 @@ void Component::Init()
     Object::Init();
 
     Trans = new Transform();
+    Owner = dynamic_cast<Actor*>(GetOuter());
 }
 
 void Component::Shutdown()
@@ -65,14 +66,34 @@ void Component::SetLocalRotation(const glm::quat& Rotation)
     Trans->SetLocalRotation(Rotation);
 }
 
-void Component::SetPosition(const glm::vec3& Position)
+void Component::SetLocalScale(const glm::vec3& LocalScale)
 {
-    Trans->SetPosition(Position);
+    Trans->SetLocalScale(LocalScale);
 }
 
-void Component::SetRotation(const glm::quat& Rotation)
+void Component::TranslateLocal(const glm::vec3& Translation)
 {
-    Trans->SetRotation(Rotation);
+    Trans->TranslateLocal(Translation);
+}
+
+void Component::TranslateWorld(const glm::vec3& Translation)
+{
+    Trans->TranslateWorld(Translation);
+}
+
+void Component::Rotate(float Degrees, const glm::vec3& Axis)
+{
+    Trans->Rotate(Degrees, Axis);
+}
+
+void Component::Rotate(const glm::quat& Quaternion)
+{
+    Trans->Rotate(Quaternion);
+}
+
+void Component::Rotate(const glm::vec3& Euler)
+{
+    Trans->Rotate(Euler);
 }
 
 glm::vec3 Component::GetLocalPosition() const

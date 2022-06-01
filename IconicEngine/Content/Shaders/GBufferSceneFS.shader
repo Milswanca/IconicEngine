@@ -76,5 +76,5 @@ void main()
     // Normals
     gNormal = select(fs_in.Normal, fs_in.TangentToWorldSpace * normalize(texture(gTex_Normals, fs_in.UV.xy).xyz * 2.0 - 1.0), gTex_Normals_Power);
 
-    gl_FragDepth = LinearizeDepth(gl_FragCoord.z);
+    //gl_FragDepth = LinearizeDepth(gl_FragCoord.z);
 }

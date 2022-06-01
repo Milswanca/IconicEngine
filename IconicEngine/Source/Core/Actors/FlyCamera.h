@@ -25,5 +25,5 @@ public:
 private:
     CameraComponent* CameraComp;
     float TurnSpeed = 180.0f;
-    float MoveSpeed = 200.0f;
+    float MoveSpeed = 1.0f;
 };

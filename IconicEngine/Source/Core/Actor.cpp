@@ -35,14 +35,34 @@ void Actor::SetLocalRotation(const glm::quat& Rotation)
     GetRootComponent()->SetLocalRotation(Rotation);
 }
 
-void Actor::SetPosition(const glm::vec3& Position)
+void Actor::SetLocalScale(const glm::vec3& LocalScale)
 {
-    GetRootComponent()->SetPosition(Position);
+    GetRootComponent()->SetLocalScale(LocalScale);
 }
 
-void Actor::SetRotation(const glm::quat& Rotation)
+void Actor::TranslateLocal(const glm::vec3& Translation)
 {
-    GetRootComponent()->SetRotation(Rotation);
+    GetRootComponent()->TranslateLocal(Translation);
+}
+
+void Actor::TranslateWorld(const glm::vec3& Translation)
+{
+    GetRootComponent()->TranslateWorld(Translation);
+}
+
+void Actor::Rotate(float Degrees, const glm::vec3& Axis)
+{
+    GetRootComponent()->Rotate(Degrees, Axis);
+}
+
+void Actor::Rotate(const glm::quat& Quaternion)
+{
+    GetRootComponent()->Rotate(Quaternion);
+}
+
+void Actor::Rotate(const glm::vec3& Euler)
+{
+    GetRootComponent()->Rotate(Euler);
 }
 
 glm::vec3 Actor::GetLocalPosition() const

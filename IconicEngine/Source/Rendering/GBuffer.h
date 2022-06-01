@@ -44,6 +44,19 @@ private:
     friend class RenderManager;
 };
 
+class GBufferForward : public GBuffer
+{
+public:
+	IMPLEMENT_CONSTRUCTOR(GBufferForward, GBuffer);
+
+	virtual void Init() override;
+	virtual void Shutdown() override;
+
+protected:
+	virtual void PreRenderPass(unsigned Pass) override;
+	virtual void PostRenderPass(unsigned Pass) override;
+};
+
 class GBufferDeferred : public GBuffer
 {
 public:

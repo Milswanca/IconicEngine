@@ -178,20 +178,36 @@ UniformBufferObject* RenderManager::GetUniformBuffer(unsigned Index) const
     return BoundBuffers[Index];
 }
 
+void RenderManager::SetShadowCasterTEMP(LightComponent* Light)
+{
+    ShadowCaster = Light;
+}
+
+LightComponent* RenderManager::GetShadowCasterTEMP() const
+{
+    return ShadowCaster;
+}
+
 void RenderManager::GenerateShadowMap(LightComponent* Light)
 {
-    //Light->GetShadowMap()->BindFramebuffer();
-    //glEnable(GL_DEPTH);
-    //Light->GetShadowMap()->Clear(true);
-    //RenderScene(ShadowMapShader, MainCamera->GetProjectionView());
-    //BindFramebuffer(nullptr);
+    Light->GetShadowFramebuffer()->BindFramebuffer();
+    glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+    glCullFace(GL_FRONT);
+    glViewport(0, 0, 2048 * 2, 2048 * 2);
+    Light->GetShadowFramebuffer()->Clear(true);
+    RenderScene(ShadowMapShader, Light->GetPosition(), Light->GetLightProjectionView());
+    BindFramebuffer(nullptr);
+    glCullFace(GL_BACK);
+    glViewport(0, 0, 1400, 800);
 }
 
 void RenderManager::Render()
 {
-    for (size_t i = 0; i < Lights.size(); ++i)
+    if (ShadowCaster != nullptr)
     {
-        GenerateShadowMap(Lights[i]);
+        GenerateShadowMap(ShadowCaster);
     }
 
     for(unsigned int i = 0; i < GBuffer::MAX_GBUFFER_PASSES; ++i)
@@ -205,11 +221,11 @@ void RenderManager::Render()
             switch(Pass->RenderType)
             {
             case GBuffer::GBufferRenderPassType::RenderScene:
-                RenderScene(Pass->RenderShader, MainCamera->GetProjectionView());
+                RenderScene(Pass->RenderShader, MainCamera->GetPosition(), MainCamera->GetProjectionView());
                 break;
 
             case GBuffer::GBufferRenderPassType::RenderQuad:
-                RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), Pass->RenderMaterial, QuadMesh);
+                RenderMesh(MainCamera->GetPosition(), MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), Pass->RenderMaterial, QuadMesh);
                 break;
             }
 
@@ -244,17 +260,17 @@ void RenderManager::Render()
 			OutputTargetMat->SetTexture("gTex_Output", DeferredBuffer->GetFinalTexture());
 			break;
 		case DrawOutputTarget::ShadowMap:
-			OutputTargetMat->SetTexture("gTex_Output", dynamic_cast<RenderTexture2D*>(Lights[0]->GetShadowMap())->GetDepthAttachment());
+			OutputTargetMat->SetTexture("gTex_Output", GetShadowCasterTEMP()->GetShadowMap());
 			break;
 		}
 	}
 
-	RenderMesh(MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
+	RenderMesh(MainCamera->GetPosition(), MainCamera->GetProjectionView(), glm::identity<glm::mat4>(), OutputTargetMat, QuadMesh);
 }
 
-void RenderManager::RenderMesh(const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
+void RenderManager::RenderMesh(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView, const glm::mat4& Model, Material* Mat, StaticMesh* Mesh)
 {
-    BufferCameraData(ProjectionView);
+    BufferCameraData(ViewPosition, ProjectionView);
     BufferLightData();
 	CameraBuffer->Bind(0);
     LightBuffer->Bind(1);
@@ -279,14 +295,14 @@ void RenderManager::RenderMesh(const glm::mat4& ProjectionView, const glm::mat4&
 	}
 }
 
-void RenderManager::RenderScene(const glm::mat4& ProjectionView)
+void RenderManager::RenderScene(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView)
 {
-    RenderScene(nullptr, ProjectionView);
+    RenderScene(nullptr, ViewPosition, ProjectionView);
 }
 
-void RenderManager::RenderScene(Shader* Shad, const glm::mat4& ProjectionView)
+void RenderManager::RenderScene(Shader* Shad, const glm::vec3& ViewPosition, const glm::mat4& ProjectionView)
 {
-	BufferCameraData(ProjectionView);
+	BufferCameraData(ViewPosition, ProjectionView);
 	BufferLightData();
 	CameraBuffer->Bind(0);
 	LightBuffer->Bind(1);
@@ -313,9 +329,9 @@ void RenderManager::SetMainCamera(CameraComponent* NewMainCamera)
     MainCamera = NewMainCamera;
 }
 
-void RenderManager::BufferCameraData(const glm::mat4& ProjectionView)
+void RenderManager::BufferCameraData(const glm::vec3& ViewPosition, const glm::mat4& ProjectionView)
 {
-	CameraData.gEyePosition = ProjectionView[3];
+	CameraData.gEyePosition = glm::vec4(ViewPosition.x, ViewPosition.y, ViewPosition.z, 1.0f);
 	CameraData.gProjectionView = ProjectionView;
 	CameraBuffer->BufferData(&CameraData, 0);
 }

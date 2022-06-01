@@ -30,8 +30,9 @@ public:
 	virtual glm::mat4 GetLightProjection() const;
 	virtual glm::mat4 GetLightView() const;
 
-	virtual void GenerateShadowMap();
-	virtual RenderTexture* GetShadowMap() const;
+	virtual void GenerateShadowMap() override;
+	virtual Texture* GetShadowMap() const override;
+	virtual RenderTexture* GetShadowFramebuffer() const override;
 
 	void SetRadius(float Radius);
 	float GetRadius() const;

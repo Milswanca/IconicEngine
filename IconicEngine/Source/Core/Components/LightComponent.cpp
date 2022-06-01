@@ -7,7 +7,7 @@ void LightComponent::Init()
 
 	GetRenderManager()->RegisterLight(this);
 
-	LightProjectionView = GetLightProjection() * GetLightView();
+	//LightProjectionView = GetLightProjection() * GetLightView();
 }
 
 void LightComponent::Update(const float DeltaTime)

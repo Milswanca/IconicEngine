@@ -141,13 +141,28 @@ void GBufferDeferred::PreRenderPass(unsigned Pass)
 	switch (Pass)
 	{
 	case 0:
+		glEnable(GL_DEPTH);
 		GBufferSceneTarget->BindFramebuffer();
 		GBufferSceneTarget->Clear(true);
 		break;
 
 	case 1:
+		glEnable(GL_DEPTH);
 		GBufferCompositeTarget->BindFramebuffer();
 		GBufferCompositeTarget->Clear(true);
+		GBufferCompositeMaterial->SetTexture("gTex_ShadowMap", GetRenderManager()->GetShadowCasterTEMP()->GetShadowMap());
+
+		glm::mat4 biasMatrix(
+			0.5, 0.0, 0.0, 0.0,
+			0.0, 0.5, 0.0, 0.0,
+			0.0, 0.0, 0.5, 0.0,
+			0.5, 0.5, 0.5, 1.0
+		);
+
+		glm::mat4 ProjView = biasMatrix * GetRenderManager()->GetShadowCasterTEMP()->GetLightProjectionView();
+		GBufferCompositeMaterial->SetMat4("gLightProjectionView", ProjView);
+		GBufferCompositeMaterial->SetFloat("gLightNear", 0.03f);
+		GBufferCompositeMaterial->SetFloat("gLightFar", 20.0f);
 		break;
 
 	case 2:
@@ -196,4 +211,23 @@ Texture2D* GBufferDeferred::GetCompositedTexture() const
 Texture2D* GBufferDeferred::GetFinalTexture() const
 {
 	return GBufferPostProcessTarget->GetColorAttachment(0);
+}
+
+void GBufferForward::Init()
+{
+}
+
+void GBufferForward::Shutdown()
+{
+
+}
+
+void GBufferForward::PreRenderPass(unsigned Pass)
+{
+
+}
+
+void GBufferForward::PostRenderPass(unsigned Pass)
+{
+
 }

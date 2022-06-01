@@ -18,13 +18,21 @@ public:
 
     void SetLocalPosition(const glm::vec3& Position);
     void SetLocalRotation(const glm::quat& Rotation);
-    void SetPosition(const glm::vec3& Position);
-    void SetRotation(const glm::quat& Rotation);
-    
+	void SetLocalScale(const glm::vec3& LocalScale);
+
+	void TranslateLocal(const glm::vec3& Translation);
+	void TranslateWorld(const glm::vec3& Translation);
+
+	void Rotate(float Degrees, const glm::vec3& Axis);
+	void Rotate(const glm::quat& Quaternion);
+	void Rotate(const glm::vec3& Euler);
+
     glm::vec3 GetLocalPosition() const;
     glm::quat GetLocalRotation() const;
+
     glm::vec3 GetPosition() const;
     glm::quat GetRotation() const;
+
     glm::vec3 GetForward() const;
     glm::vec3 GetRight() const;
     glm::vec3 GetUp() const;

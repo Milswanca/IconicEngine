@@ -1,7 +1,9 @@
 #include "DirectionalLightComponent.h"
 #include "Rendering/RenderTexture2D.h"
+#include "Core/Actor.h"
 
 #include "glm/gtx/transform.hpp"
+#include <Core/Components/CameraComponent.h>
 
 void DirectionalLightComponent::Init()
 {
@@ -10,10 +12,13 @@ void DirectionalLightComponent::Init()
 	LightData = new Data();
 
 	RenderTexture2D::CreateRenderTexture2DParams Params;
-	Params.W = 1200;
-	Params.H = 800;
+	Params.W = 2048 * 2;
+	Params.H = 2048 * 2;
 	Params.DepthStencilRule = RenderTexture2D::AddDepthStencilRules::DepthOnly;
 	ShadowMap = RenderTexture2D::Create(this, Params);
+
+	Camera = GetOwner()->AddComponent<CameraComponent>();
+	Camera->AttachTo(this);
 }
 
 void DirectionalLightComponent::Update(const float DeltaTime)
@@ -53,16 +58,19 @@ glm::vec4 DirectionalLightComponent::GetColor() const
 
 glm::mat4 DirectionalLightComponent::GetLightView() const
 {
-	return glm::lookAt(GetPosition(), GetPosition() + GetForward(), GetUp());
+	return Camera->GetView();
+	return glm::lookAt(GetForward() * 30.f, glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
 glm::mat4 DirectionalLightComponent::GetLightProjection() const
 {
-	float Near = 0.3f;
-	float Far = 10000.0f;
+	return Camera->GetProjection();
+	float Near = 0.03f;
+	float Far = 10.0f;
 	float FOV = 45.0f;
-	float Aspect = 600.0f / 400.0f;
-	return glm::perspective(FOV, Aspect, Near, Far);
+	float Aspect = 1200.0f / 800.0f;
+	float Size = 10.0f;
+	return glm::ortho(-Size, Size, -Size, Size, -1.0f, Far);
 }
 
 void DirectionalLightComponent::GenerateShadowMap()
@@ -70,7 +78,12 @@ void DirectionalLightComponent::GenerateShadowMap()
 	ShadowMap->BindFramebuffer();
 }
 
-RenderTexture* DirectionalLightComponent::GetShadowMap() const
+Texture* DirectionalLightComponent::GetShadowMap() const
+{
+	return ShadowMap->GetDepthAttachment();
+}
+
+RenderTexture* DirectionalLightComponent::GetShadowFramebuffer() const
 {
 	return ShadowMap;
 }

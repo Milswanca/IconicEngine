@@ -38,19 +38,32 @@ void Application::Init()
     {
         StaticMeshActor* SMActor = Engine::Get()->GetActiveWorld()->SpawnActor<StaticMeshActor>();
         SMActor->SetMesh(StaticMeshes[i]);
-        SMActor->GetRootComponent()->SetLocalPosition(glm::vec3(0.0f, -150.0f, 0.0f));
+        //SMActor->GetRootComponent()->SetLocalPosition(glm::vec3(0.0f, -150.0f, 0.0f));
+		SMActor->SetLocalScale(glm::vec3(0.001f, 0.001f, 0.001f));
         Meshes.push_back(SMActor);
     }
-    
-    FlyCam = Engine::Get()->GetActiveWorld()->SpawnActor<FlyCamera>();
-    //FlyCam->SetRotation(glm::angleAxis(glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f)));
-    FlyCam->SetPosition(-FlyCam->GetForward() * 20.0f);
-	GetRenderManager()->SetMainCamera(FlyCam->GetCameraComponent());
+   
+	StaticMeshActor* SMActor = Engine::Get()->GetActiveWorld()->SpawnActor<StaticMeshActor>();
+	SMActor->SetMesh(RenderManager::QuadMesh);
+	SMActor->Rotate(90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+	SMActor->TranslateWorld(glm::vec3(0.0f, -0.25f, 0.0f));
 
-	//DirectionalLightActor* DirectionalLight = Engine::Get()->GetActiveWorld()->SpawnActor<DirectionalLightActor>();
-	//glm::quat Rot = glm::quat(glm::vec3(0.0f, glm::radians(45.0f), glm::radians(45.0f)));
-	//DirectionalLight->SetLocalRotation(Rot);
-	//DirectionalLight->GetDirectionalLightComponent()->SetIntensity(0.2f);
+	Material* Mat = CreateObject<Material>(this);
+	SMActor->GetStaticMeshComponent()->SetMaterial(0, Mat);
+	Mat->SetShader(Engine::BaseShader);
+	Mat->SetVec3("gDiffuseColor", glm::vec3(0.5f, 0.5f, 0.5f));
+
+	DirectionalLightActor* DirectionalLight = Engine::Get()->GetActiveWorld()->SpawnActor<DirectionalLightActor>();
+	DirectionalLight->Rotate(-60.0f, DirectionalLight->GetRight());
+	DirectionalLight->TranslateLocal(glm::vec3(0.0f, 0.0f, 1.0f) * 4.0f);
+	DirectionalLight->GetDirectionalLightComponent()->SetIntensity(2.0f);
+	GetRenderManager()->SetShadowCasterTEMP(DirectionalLight->GetDirectionalLightComponent());
+	DirectionalLight->GetRootComponent()->AttachTo(RootActor->GetRootComponent());
+
+	FlyCam = Engine::Get()->GetActiveWorld()->SpawnActor<FlyCamera>();	
+	//FlyCam->Rotate(-45.0f, FlyCam->GetRight());
+	//FlyCam->TranslateLocal(glm::vec3(0.0f, 0.0f, 1.0f) * 2500.0f);
+	GetRenderManager()->SetMainCamera(FlyCam->GetCameraComponent());
 
 	for (unsigned int i = 0; i < NumLights; ++i)
 	{
@@ -74,7 +87,7 @@ void Application::Init()
 		Light->GetRootComponent()->AttachTo(RootActor->GetRootComponent());
 		Light->GetPointLightComponent()->SetColor(glm::vec4(r, g, b, 1.0f));
 		Light->GetPointLightComponent()->SetIntensity(2.0f);
-		Light->SetPosition(glm::vec3(Position));
+		Light->SetLocalPosition(glm::vec3(Position));
 
 		StaticMeshComponent* Comp = Light->AddComponent<StaticMeshComponent>();
 		Comp->AttachTo(Light->GetRootComponent());
@@ -122,9 +135,9 @@ void Application::Update(float DeltaTime)
 		GetRenderManager()->SetDrawOutputTarget(RenderManager::DrawOutputTarget::ShadowMap);
 	}
 
-	Angle += DeltaTime * 20.0f;
+	Angle += DeltaTime * 5.0f;
 	glm::quat rot = glm::angleAxis(glm::radians(Angle), glm::vec3(0.0f, 1.0f, 0.0f));
-	//RootActor->SetLocalRotation(rot);
+	RootActor->SetLocalRotation(rot);
 }
 
 void Application::Shutdown()

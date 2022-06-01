@@ -33,11 +33,13 @@ public:
 	virtual glm::mat4 GetLightProjection() const override;
 
 	virtual void GenerateShadowMap() override;
-	virtual RenderTexture* GetShadowMap() const override;
+	virtual Texture* GetShadowMap() const override;
+	virtual RenderTexture* GetShadowFramebuffer() const override;
 
 	Data* GetDirectionalLightData() const;
 
 protected:
+	class CameraComponent* Camera;
 	RenderTexture2D* ShadowMap;
 	Data* LightData;
 };
